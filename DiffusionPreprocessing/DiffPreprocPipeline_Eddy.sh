@@ -505,6 +505,7 @@ main()
 
 	log_Msg "About to issue the following command to invoke the run_eddy.sh script"
 	log_Msg "${run_eddy_cmd}"
+	# RRRRRRR 主要部分1：进行eddy RRRRRRR
 	${run_eddy_cmd}
 	
 	log_Msg "Completed"

@@ -86,6 +86,11 @@ ORIGDIR=`pwd`
 cd $WD
 echo "gradient_unwarp.py ${BaseName}_vol1.nii.gz trilinear.nii.gz siemens -g ${InputCoeffs} -n" >> log.txt
 # NB: gradient_unwarp.py *must* have the filename extensions written out explicitly or it will crash
+echo rrrrrrrrrrrrrrr
+echo $WD
+echo ${BaseName}_vol1.nii.gz
+echo $InputCoeffs
+echo rrrrrrrrrrrrrrr
 gradient_unwarp.py ${BaseName}_vol1.nii.gz trilinear.nii.gz siemens -g $InputCoeffs -n
 cd $ORIGDIR
 

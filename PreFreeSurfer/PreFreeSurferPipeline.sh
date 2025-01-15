@@ -487,32 +487,32 @@ for TXw in ${Modalities} ; do
         ${RUN} ${FSLDIR}/bin/imcp ${TXwFolder}/${TXwImage}1_gdc ${TXwFolder}/${TXwImage}
     fi
 
-    # ACPC align T1w or T2w image to 0.7mm MNI Template to create native volume space
-    log_Msg "Aligning ${TXw} image to 0.7mm MNI ${TXw}Template to create native volume space"
-    log_Msg "mkdir -p ${TXwFolder}/ACPCAlignment"
-    mkdir -p ${TXwFolder}/ACPCAlignment
-    ${RUN} ${HCPPIPEDIR_PreFS}/ACPCAlignment.sh \
-        --workingdir=${TXwFolder}/ACPCAlignment \
-        --in=${TXwFolder}/${TXwImage} \
-        --ref=${TXwTemplate} \
-        --out=${TXwFolder}/${TXwImage}_acpc \
-        --omat=${TXwFolder}/xfms/acpc.mat \
-        --brainsize=${BrainSize}
+    # # ACPC align T1w or T2w image to 0.7mm MNI Template to create native volume space
+    # log_Msg "Aligning ${TXw} image to 0.7mm MNI ${TXw}Template to create native volume space"
+    # log_Msg "mkdir -p ${TXwFolder}/ACPCAlignment"
+    # mkdir -p ${TXwFolder}/ACPCAlignment
+    # ${RUN} ${HCPPIPEDIR_PreFS}/ACPCAlignment.sh \
+    #     --workingdir=${TXwFolder}/ACPCAlignment \
+    #     --in=${TXwFolder}/${TXwImage} \
+    #     --ref=${TXwTemplate} \
+    #     --out=${TXwFolder}/${TXwImage}_acpc \
+    #     --omat=${TXwFolder}/xfms/acpc.mat \
+    #     --brainsize=${BrainSize}
 
-    # Brain Extraction(FNIRT-based Masking)
-    log_Msg "Performing Brain Extraction using FNIRT-based Masking"
-    log_Msg "mkdir -p ${TXwFolder}/BrainExtraction_FNIRTbased"
-    mkdir -p ${TXwFolder}/BrainExtraction_FNIRTbased
-    ${RUN} ${HCPPIPEDIR_PreFS}/BrainExtraction_FNIRTbased.sh \
-        --workingdir=${TXwFolder}/BrainExtraction_FNIRTbased \
-        --in=${TXwFolder}/${TXwImage}_acpc \
-        --ref=${TXwTemplate} \
-        --refmask=${TemplateMask} \
-        --ref2mm=${TXwTemplate2mm} \
-        --ref2mmmask=${Template2mmMask} \
-        --outbrain=${TXwFolder}/${TXwImage}_acpc_brain \
-    	--outbrainmask=${TXwFolder}/${TXwImage}_acpc_brain_mask \
-    	--fnirtconfig=${FNIRTConfig}
+    # # Brain Extraction(FNIRT-based Masking)
+    # log_Msg "Performing Brain Extraction using FNIRT-based Masking"
+    # log_Msg "mkdir -p ${TXwFolder}/BrainExtraction_FNIRTbased"
+    # mkdir -p ${TXwFolder}/BrainExtraction_FNIRTbased
+    # ${RUN} ${HCPPIPEDIR_PreFS}/BrainExtraction_FNIRTbased.sh \
+    #     --workingdir=${TXwFolder}/BrainExtraction_FNIRTbased \
+    #     --in=${TXwFolder}/${TXwImage}_acpc \
+    #     --ref=${TXwTemplate} \
+    #     --refmask=${TemplateMask} \
+    #     --ref2mm=${TXwTemplate2mm} \
+    #     --ref2mmmask=${Template2mmMask} \
+    #     --outbrain=${TXwFolder}/${TXwImage}_acpc_brain \
+    # 	--outbrainmask=${TXwFolder}/${TXwImage}_acpc_brain_mask \
+    # 	--fnirtconfig=${FNIRTConfig}
 
 done 
 
@@ -538,32 +538,32 @@ case $AvgrdcSTRING in
         log_Msg "mkdir -p ${wdir}"
         mkdir -p ${wdir}
 
-        ${RUN} ${HCPPIPEDIR_PreFS}/T2wToT1wDistortionCorrectAndReg.sh \
-            --workingdir=${wdir} \
-            --t1=${T1wFolder}/${T1wImage}_acpc \
-            --t1brain=${T1wFolder}/${T1wImage}_acpc_brain \
-            --t2=${T2wFolder}/${T2wImage}_acpc \
-            --t2brain=${T2wFolder}/${T2wImage}_acpc_brain \
-            --fmapmag=${MagnitudeInputName} \
-            --fmapphase=${PhaseInputName} \
-            --fmapgeneralelectric=${GEB0InputName} \
-            --echodiff=${TE} \
-            --SEPhaseNeg=${SpinEchoPhaseEncodeNegative} \
-            --SEPhasePos=${SpinEchoPhaseEncodePositive} \
-            --seechospacing=${SEEchoSpacing} \
-            --seunwarpdir=${SEUnwarpDir} \
-            --t1sampspacing=${T1wSampleSpacing} \
-            --t2sampspacing=${T2wSampleSpacing} \
-            --unwarpdir=${UnwarpDir} \
-            --ot1=${T1wFolder}/${T1wImage}_acpc_dc \
-            --ot1brain=${T1wFolder}/${T1wImage}_acpc_dc_brain \
-            --ot1warp=${T1wFolder}/xfms/${T1wImage}_dc \
-            --ot2=${T1wFolder}/${T2wImage}_acpc_dc \
-            --ot2warp=${T1wFolder}/xfms/${T2wImage}_reg_dc \
-            --method=${AvgrdcSTRING} \
-            --topupconfig=${TopupConfig} \
-            --gdcoeffs=${GradientDistortionCoeffs} \
-            --usejacobian=${UseJacobian}
+        # ${RUN} ${HCPPIPEDIR_PreFS}/T2wToT1wDistortionCorrectAndReg.sh \
+        #     --workingdir=${wdir} \
+        #     --t1=${T1wFolder}/${T1wImage}_acpc \
+        #     --t1brain=${T1wFolder}/${T1wImage}_acpc_brain \
+        #     --t2=${T2wFolder}/${T2wImage}_acpc \
+        #     --t2brain=${T2wFolder}/${T2wImage}_acpc_brain \
+        #     --fmapmag=${MagnitudeInputName} \
+        #     --fmapphase=${PhaseInputName} \
+        #     --fmapgeneralelectric=${GEB0InputName} \
+        #     --echodiff=${TE} \
+        #     --SEPhaseNeg=${SpinEchoPhaseEncodeNegative} \
+        #     --SEPhasePos=${SpinEchoPhaseEncodePositive} \
+        #     --seechospacing=${SEEchoSpacing} \
+        #     --seunwarpdir=${SEUnwarpDir} \
+        #     --t1sampspacing=${T1wSampleSpacing} \
+        #     --t2sampspacing=${T2wSampleSpacing} \
+        #     --unwarpdir=${UnwarpDir} \
+        #     --ot1=${T1wFolder}/${T1wImage}_acpc_dc \
+        #     --ot1brain=${T1wFolder}/${T1wImage}_acpc_dc_brain \
+        #     --ot1warp=${T1wFolder}/xfms/${T1wImage}_dc \
+        #     --ot2=${T1wFolder}/${T2wImage}_acpc_dc \
+        #     --ot2warp=${T1wFolder}/xfms/${T2wImage}_reg_dc \
+        #     --method=${AvgrdcSTRING} \
+        #     --topupconfig=${TopupConfig} \
+        #     --gdcoeffs=${GradientDistortionCoeffs} \
+        #     --usejacobian=${UseJacobian}
 
         ;;
 
@@ -581,17 +581,17 @@ case $AvgrdcSTRING in
         log_Msg "mkdir -p ${wdir}"
         mkdir -p ${wdir}
 
-        ${RUN} ${HCPPIPEDIR_PreFS}/T2wToT1wReg.sh \
-            ${wdir} \
-            ${T1wFolder}/${T1wImage}_acpc \
-            ${T1wFolder}/${T1wImage}_acpc_brain \
-            ${T2wFolder}/${T2wImage}_acpc \
-            ${T2wFolder}/${T2wImage}_acpc_brain \
-            ${T1wFolder}/${T1wImage}_acpc_dc \
-            ${T1wFolder}/${T1wImage}_acpc_dc_brain \
-            ${T1wFolder}/xfms/${T1wImage}_dc \
-            ${T1wFolder}/${T2wImage}_acpc_dc \
-            ${T1wFolder}/xfms/${T2wImage}_reg_dc
+        # ${RUN} ${HCPPIPEDIR_PreFS}/T2wToT1wReg.sh \
+        #     ${wdir} \
+        #     ${T1wFolder}/${T1wImage}_acpc \
+        #     ${T1wFolder}/${T1wImage}_acpc_brain \
+        #     ${T2wFolder}/${T2wImage}_acpc \
+        #     ${T2wFolder}/${T2wImage}_acpc_brain \
+        #     ${T1wFolder}/${T1wImage}_acpc_dc \
+        #     ${T1wFolder}/${T1wImage}_acpc_dc_brain \
+        #     ${T1wFolder}/xfms/${T1wImage}_dc \
+        #     ${T1wFolder}/${T2wImage}_acpc_dc \
+        #     ${T1wFolder}/xfms/${T2wImage}_reg_dc
 
 esac
 
@@ -608,17 +608,17 @@ fi
 log_Msg "mkdir -p ${T1wFolder}/BiasFieldCorrection_sqrtT1wXT1w" 
 mkdir -p ${T1wFolder}/BiasFieldCorrection_sqrtT1wXT1w 
 
-${RUN} ${HCPPIPEDIR_PreFS}/BiasFieldCorrection_sqrtT1wXT1w.sh \
-    --workingdir=${T1wFolder}/BiasFieldCorrection_sqrtT1wXT1w \
-    --T1im=${T1wFolder}/${T1wImage}_acpc_dc \
-    --T1brain=${T1wFolder}/${T1wImage}_acpc_dc_brain \
-    --T2im=${T1wFolder}/${T2wImage}_acpc_dc \
-    --obias=${T1wFolder}/BiasField_acpc_dc \
-    --oT1im=${T1wFolder}/${T1wImage}_acpc_dc_restore \
-    --oT1brain=${T1wFolder}/${T1wImage}_acpc_dc_restore_brain \
-    --oT2im=${T1wFolder}/${T2wImage}_acpc_dc_restore \
-    --oT2brain=${T1wFolder}/${T2wImage}_acpc_dc_restore_brain \
-    ${BiasFieldSmoothingSigma}
+# ${RUN} ${HCPPIPEDIR_PreFS}/BiasFieldCorrection_sqrtT1wXT1w.sh \
+#     --workingdir=${T1wFolder}/BiasFieldCorrection_sqrtT1wXT1w \
+#     --T1im=${T1wFolder}/${T1wImage}_acpc_dc \
+#     --T1brain=${T1wFolder}/${T1wImage}_acpc_dc_brain \
+#     --T2im=${T1wFolder}/${T2wImage}_acpc_dc \
+#     --obias=${T1wFolder}/BiasField_acpc_dc \
+#     --oT1im=${T1wFolder}/${T1wImage}_acpc_dc_restore \
+#     --oT1brain=${T1wFolder}/${T1wImage}_acpc_dc_restore_brain \
+#     --oT2im=${T1wFolder}/${T2wImage}_acpc_dc_restore \
+#     --oT2brain=${T1wFolder}/${T2wImage}_acpc_dc_restore_brain \
+#     ${BiasFieldSmoothingSigma}
 
 # ------------------------------------------------------------------------------
 #  Atlas Registration to MNI152: FLIRT + FNIRT  

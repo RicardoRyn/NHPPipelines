@@ -310,6 +310,10 @@ get_options()
 				CombineDataFlag=${argument#*=}
 				index=$(( index + 1 ))
 				;;
+			--rjxexchangedim23=*)
+				RjxExchangeDim23=${argument#*=}
+				index=$(( index + 1 ))
+				;;
 			*)
 				usage
 				echo "ERROR: Unrecognized Option: ${argument}"
@@ -444,7 +448,7 @@ main()
 	# Establish tool name for logging
 	log_SetToolName "${SCRIPT_NAME}"
 	
-	log_Msg "Invoking Pre-Eddy Steps"
+	# RRRRRRR 主要部分1：Eddy之前的各种操作，完成topup RRRRRRR
 	local pre_eddy_cmd=""
 	pre_eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_PreEddy.sh "
 	pre_eddy_cmd+=" --path=${StudyFolder} "
@@ -456,10 +460,10 @@ main()
 	pre_eddy_cmd+=" --echospacing=${echospacing} "
 	pre_eddy_cmd+=" --b0maxbval=${b0maxbval} "
 	pre_eddy_cmd+=" --printcom=${runcmd} "
-
 	log_Msg "pre_eddy_cmd: ${pre_eddy_cmd}"
 	${pre_eddy_cmd}
 
+	# RRRRRRR 主要部分2：进行Eddy RRRRRRR
 	log_Msg "Invoking Eddy Step"
 	local eddy_cmd=""
 	eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_Eddy.sh "
@@ -470,16 +474,15 @@ main()
 	eddy_cmd+=" --replace-outliers"  # Added here for RIKEN
 	eddy_cmd+=" --detailed-outlier-stats" # Added here for RIKEN 
 	eddy_cmd+=" --rms" # Added here for RIKEN 
-   
 	if [ ! -z "${extra_eddy_args}" ] ; then
 		for extra_eddy_arg in ${extra_eddy_args} ; do
 			eddy_cmd+=" --extra-eddy-arg=${extra_eddy_arg} "
 		done
 	fi
-
 	log_Msg "eddy_cmd: ${eddy_cmd}"
 	${eddy_cmd}
 
+	# RRRRRRR 主要部分3：Eddy之后的步骤，包括配准到T1上 RRRRRRR
 	log_Msg "Invoking Post-Eddy Steps"
 	local post_eddy_cmd=""
 	post_eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_PostEddyNHP.sh "
@@ -490,7 +493,7 @@ main()
 	post_eddy_cmd+=" --dof=${DegreesOfFreedom} "
 	post_eddy_cmd+=" --combine-data-flag=${CombineDataFlag} "
 	post_eddy_cmd+=" --printcom=${runcmd} "
-
+	post_eddy_cmd+=" --rjxexchangedim23=${RjxExchangeDim23} "
 	log_Msg "post_eddy_cmd: ${post_eddy_cmd}"
 	${post_eddy_cmd}
 	

@@ -367,7 +367,7 @@ main()
 	# Establish output directory paths
 	outdir=${StudyFolder}/${Subject}/${DWIName}
 	outdirT1w=${StudyFolder}/${Subject}/T1w/${DWIName}
-	
+
 	# Delete any existing output sub-directories
 	if [ -d ${outdir} ] ; then
 		${runcmd} rm -rf ${outdir}/rawdata
@@ -408,7 +408,6 @@ main()
 		if [[ ${Image} =~ ^.*EMPTY.*$  ]] ; then
 			Image=EMPTY
 		fi
-		
 		if [ ${Image} = ${MissingFileFlag} ] ; then
 			PosVols[${Pos_count}]=0
 		else
@@ -420,18 +419,16 @@ main()
 		fi
 		Pos_count=$((${Pos_count} + 1))
 	done
-	
+
 	# copy negative raw data
 	log_Msg "Copying negative raw data to working directory"
 	NegInputImages=`echo ${NegInputImages} | sed 's/@/ /g'`
 	log_Msg "NegInputImages: ${NegInputImages}"
-	
 	Neg_count=1
 	for Image in ${NegInputImages} ; do
 		if [[ ${Image} =~ ^.*EMPTY.*$  ]] ; then
 			Image=EMPTY
 		fi
-		
 		if [ ${Image} = ${MissingFileFlag} ] ; then
 			NegVols[${Neg_count}]=0
 		else
@@ -443,7 +440,6 @@ main()
 		fi
 		Neg_count=$((${Neg_count} + 1))
 	done
-	
 	# verify positive and negative datasets are provided in pairs
 	if [ ${Pos_count} -ne ${Neg_count} ] ; then
 		log_Msg "Wrong number of input datasets! Make sure that you provide pairs of input filenames."
@@ -490,9 +486,11 @@ main()
 		exit 1
 	fi
 	
+	# RRRRRRR 主要部分1：基础预处理步骤 RRRRRRR
 	log_Msg "Running Basic Preprocessing"
 	${runcmd} ${HCPPIPEDIR_dMRI}/basic_preproc.sh ${outdir} ${echospacing} ${PEdir} ${b0dist} ${b0maxbval}
 	
+	# RRRRRRR 主要部分2：topup RRRRRRR
 	log_Msg "Running Topup"
 	${runcmd} ${HCPPIPEDIR_dMRI}/run_topup.sh ${outdir}/topup
 	

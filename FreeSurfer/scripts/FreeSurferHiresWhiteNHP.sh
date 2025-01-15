@@ -46,8 +46,25 @@ tkregister2 --mov "$mridir"/T1w_hires.nii.gz --targ $mridir/orig.mgz --noedit --
 # map white and pial to hires coords (pial is only for visualization - won't be used later)
 # [Note that Xh.sphere.reg doesn't exist yet, which is the default surface registration 
 # assumed by mri_surf2surf, so use "--surfreg white"].
-mri_surf2surf --s $SubjectID --sval-xyz white --reg $reg "$mridir"/T1w_hires.nii.gz --tval-xyz --tval white.hires --surfreg white --hemi lh
-mri_surf2surf --s $SubjectID --sval-xyz white --reg $reg "$mridir"/T1w_hires.nii.gz --tval-xyz --tval white.hires --surfreg white --hemi rh
+
+# RRRRRRR 修改 RRRRRRR
+# “--tval-xyz”后面必须跟volume
+mri_surf2surf --s $SubjectID \
+	--sval-xyz white \
+	--reg $reg \
+	"$mridir"/T1w_hires.nii.gz \
+	--tval-xyz "$mridir"/T1w_hires.nii.gz \
+	--tval white.hires \
+	--surfreg white \
+	--hemi lh
+mri_surf2surf --s $SubjectID \
+	--sval-xyz white \
+	--reg $reg "$mridir"/T1w_hires.nii.gz \
+	--tval-xyz "$mridir"/T1w_hires.nii.gz \
+	--tval white.hires \
+	--surfreg white \
+	--hemi rh
+# RRRRRRRRRRRRRRRRRRRR
 
 cp $SubjectDIR/$SubjectID/surf/lh.white $SubjectDIR/$SubjectID/surf/lh.white.prehires
 cp $SubjectDIR/$SubjectID/surf/rh.white $SubjectDIR/$SubjectID/surf/rh.white.prehires
@@ -129,8 +146,26 @@ fi
 #fi
 
 tkregister2 --mov $mridir/orig.mgz --targ "$mridir"/T1w_hires.nii.gz --noedit --regheader --reg $regII
-mri_surf2surf --s $SubjectID --sval-xyz white.deformed --reg $regII $mridir/orig.mgz --tval-xyz --tval white --surfreg white --hemi lh
-mri_surf2surf --s $SubjectID --sval-xyz white.deformed --reg $regII $mridir/orig.mgz --tval-xyz --tval white --surfreg white --hemi rh
+# RRRRRRR 修改 RRRRRRR
+# 一样，修改
+mri_surf2surf --s $SubjectID \
+	--sval-xyz white.deformed \
+	--reg $regII \
+	$mridir/orig.mgz \
+	--tval-xyz $mridir/orig.mgz \
+	--tval white \
+	--surfreg white \
+	--hemi lh
+mri_surf2surf --s $SubjectID \
+	--sval-xyz \
+	white.deformed \
+	--reg $regII \
+	$mridir/orig.mgz \
+	--tval-xyz $mridir/orig.mgz \
+	--tval white \
+	--surfreg white \
+	--hemi rh
+# RRRRRRRRRRRRRRRRRRRR
 
 cp --preserve=timestamps $SubjectDIR/$SubjectID/surf/lh.curv.deformed $SubjectDIR/$SubjectID/surf/lh.curv
 cp --preserve=timestamps $SubjectDIR/$SubjectID/surf/lh.area.deformed  $SubjectDIR/$SubjectID/surf/lh.area

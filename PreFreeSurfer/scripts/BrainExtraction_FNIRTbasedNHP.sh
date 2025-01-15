@@ -83,13 +83,40 @@ echo " " >> $WD/log.txt
 ########################################## DO WORK ##########################################
 
 # Register to 2mm reference image (linear then non-linear)
+if [ ! -e "$Input"_brain.nii.gz ] ; then  # 修改，原本是“if [ ! -e "$Input"_brain ] ; then” by RJX on 2024/5/31
+	${FSLDIR}/bin/flirt \
+		-interp spline \
+		-dof 12 \
+		-in "$Input" \
+		-ref "$Reference2mm" \
+		-omat "$WD"/roughlin.mat \
+		-out "$WD"/"$BaseName"_to_MNI_roughlin.nii.gz \
+		-nosearch
 
-if [ ! -e "$Input"_brain ] ; then
-      ${FSLDIR}/bin/flirt -interp spline -dof 12 -in "$Input" -ref "$Reference2mm" -omat "$WD"/roughlin.mat -out "$WD"/"$BaseName"_to_MNI_roughlin.nii.gz -nosearch
-      ${FSLDIR}/bin/fnirt --in="$Input" --ref="$Reference2mm" --aff="$WD"/roughlin.mat --refmask="$Reference2mmMask" --fout="$WD"/str2standard.nii.gz --jout="$WD"/NonlinearRegJacobians.nii.gz --refout="$WD"/IntensityModulatedT1.nii.gz --iout="$WD"/"$BaseName"_to_MNI_nonlin.nii.gz --logout="$WD"/NonlinearReg.txt --intout="$WD"/NonlinearIntensities.nii.gz --cout="$WD"/NonlinearReg.nii.gz --config="$FNIRTConfig"
+	${FSLDIR}/bin/fnirt \
+		--in="$Input" \
+		--ref="$Reference2mm" \
+		--aff="$WD"/roughlin.mat \
+		--refmask="$Reference2mmMask" \
+		--fout="$WD"/str2standard.nii.gz \
+		--jout="$WD"/NonlinearRegJacobians.nii.gz \
+		--refout="$WD"/IntensityModulatedT1.nii.gz \
+		--iout="$WD"/"$BaseName"_to_MNI_nonlin.nii.gz \
+		--logout="$WD"/NonlinearReg.txt \
+		--intout="$WD"/NonlinearIntensities.nii.gz \
+		--cout="$WD"/NonlinearReg.nii.gz \
+		--config="$FNIRTConfig"
 
 else # use pre-brain mask for robust initialization
-      ${FSLDIR}/bin/flirt -interp spline -dof 12 -in "$Input"_brain -ref "`remove_ext $Reference2mm`"_brain -omat "$WD"/roughlin.mat -out "$WD"/"$BaseName"_to_MNI_roughlin.nii.gz -nosearch
+	${FSLDIR}/bin/flirt \
+		-interp spline \
+		-dof 12 \
+		-in "$Input"_brain \
+		-ref "`remove_ext $Reference2mm`"_brain \
+		-omat "$WD"/roughlin.mat \
+		-out "$WD"/"$BaseName"_to_MNI_roughlin.nii.gz \
+		-nosearch
+
       ${FSLDIR}/bin/fslmaths "$Input"_brain -bin "$WD"/brainmask_TMP
       ${FSLDIR}/bin/fnirt --in="$Input" --ref="$Reference2mm" --aff="$WD"/roughlin.mat --refmask="$Reference2mmMask" --fout="$WD"/str2standard.nii.gz --jout="$WD"/NonlinearRegJacobians.nii.gz --refout="$WD"/IntensityModulatedT1.nii.gz --iout="$WD"/"$BaseName"_to_MNI_nonlin.nii.gz --logout="$WD"/NonlinearReg.txt --intout="$WD"/NonlinearIntensities.nii.gz --cout="$WD"/NonlinearReg.nii.gz --config="$FNIRTConfig" #--inmask="$WD"/brainmask_TMP
 
