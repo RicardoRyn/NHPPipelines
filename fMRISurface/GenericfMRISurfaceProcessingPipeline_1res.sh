@@ -98,18 +98,45 @@ ROIFolder="$AtlasSpaceFolder"/"$ROIFolder"
 log_Msg "Make fMRI Ribbon"
 log_Msg "mkdir -p ${ResultsFolder}/RibbonVolumeToSurfaceMapping"
 mkdir -p "$ResultsFolder"/RibbonVolumeToSurfaceMapping
-"$PipelineScripts"/RibbonVolumeToSurfaceMapping_1res.sh "$ResultsFolder"/RibbonVolumeToSurfaceMapping "$ResultsFolder"/"$NameOffMRI" "$Subject" "$AtlasSpaceFolder"/"$DownSampleFolder" "$LowResMesh" "$AtlasSpaceFolder"/"$NativeFolder" "${RegName}"
+"$PipelineScripts"/RibbonVolumeToSurfaceMapping_1res.sh \
+	"$ResultsFolder"/RibbonVolumeToSurfaceMapping \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$Subject" \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$LowResMesh" \
+	"$AtlasSpaceFolder"/"$NativeFolder" \
+	"${RegName}"
 
 #Surface Smoothing
 log_Msg "Surface Smoothing"
-"$PipelineScripts"/SurfaceSmoothing.sh "$ResultsFolder"/"$NameOffMRI" "$Subject" "$AtlasSpaceFolder"/"$DownSampleFolder" "$LowResMesh" "$SmoothingFWHM"
+"$PipelineScripts"/SurfaceSmoothing.sh \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$Subject" \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$LowResMesh" \
+	"$SmoothingFWHM"
 
 #Subcortical Processing
 log_Msg "Subcortical Processing"
-"$PipelineScripts"/SubcorticalProcessing.sh "$AtlasSpaceFolder" "$ROIFolder" "$FinalfMRIResolution" "$ResultsFolder" "$NameOffMRI" "$SmoothingFWHM" "$GrayordinatesResolution"
+"$PipelineScripts"/SubcorticalProcessing.sh \
+	"$AtlasSpaceFolder" \
+	"$ROIFolder" \
+	"$FinalfMRIResolution" \
+	"$ResultsFolder" \
+	"$NameOffMRI" \
+	"$SmoothingFWHM" \
+	"$GrayordinatesResolution"
 
 #Generation of Dense Timeseries
 log_Msg "Generation of Dense Timeseries"
-"$PipelineScripts"/CreateDenseTimeseries.sh "$AtlasSpaceFolder"/"$DownSampleFolder" "$Subject" "$LowResMesh" "$ResultsFolder"/"$NameOffMRI" "$SmoothingFWHM" "$ROIFolder" "$ResultsFolder"/"$OutputAtlasDenseTimeseries" "$GrayordinatesResolution"
+"$PipelineScripts"/CreateDenseTimeseries.sh \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$Subject" \
+	"$LowResMesh" \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$SmoothingFWHM" \
+	"$ROIFolder" \
+	"$ResultsFolder"/"$OutputAtlasDenseTimeseries" \
+	"$GrayordinatesResolution"
 
 log_Msg "Completed"
