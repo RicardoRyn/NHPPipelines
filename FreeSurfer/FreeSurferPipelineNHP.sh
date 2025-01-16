@@ -274,7 +274,7 @@ function runFSbrainmaskandseg () {
 	# Registration and normalization to GCA
 	log_Msg "Second recon-all steps for registration and normaliztion to GCA"
 
-	# RRRRRRR 修改  by RJX on 2024/6/1 儿童节快乐 "o((>ω< ))o" RRRRRRR
+	# RRRRRRR 修改  by RJX on 2024/6/1 儿童节快乐 o((>ω< ))o RRRRRRR
 	# “-gca-dir”默认找的是RB_all_2016-05-10.vc700.gca文件，但是没有。所以添加了“-gca”和“-gca-skull”，然后手动指定文件。
 	recon-all \
 		-subjid $SubjectID \
