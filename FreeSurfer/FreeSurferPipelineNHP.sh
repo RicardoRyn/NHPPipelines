@@ -33,7 +33,7 @@ source $HCPPIPEDIR/global/scripts/opts.shlib # Command line option functions
 # --------------------------------------------------------------------------------
 
 show_usage() {
-    echo "Usage information To Be WrittenG'k
+    echo "Usage information To Be Written"
     exit 1
 }
 
@@ -530,32 +530,32 @@ function runFSpial () {
 
 function runFSfinish () {
 
-	if [[ ! $SPECIES =~ Human ]] ; then
+if [[ ! $SPECIES =~ Human ]] ; then
 
-		log_Msg "Rescale volume and surface to native space"
+	log_Msg "Rescale volume and surface to native space"
 
-		# RescaleVolumeTransform=${HCPPIPEDIR}/global/templates/fs_xfms/${SPECIES}_rescale
-		mv "$SubjectDIR"/"$SubjectID" "$SubjectDIR"/"$SubjectID"_1mm
-		mkdir -p "$SubjectDIR"/"$SubjectID"/mri
-		mkdir -p "$SubjectDIR"/"$SubjectID"/mri/transforms
-		mkdir -p "$SubjectDIR"/"$SubjectID"/surf
-		mkdir -p "$SubjectDIR"/"$SubjectID"/label
+	# RescaleVolumeTransform=${HCPPIPEDIR}/global/templates/fs_xfms/${SPECIES}_rescale
+	mv "$SubjectDIR"/"$SubjectID" "$SubjectDIR"/"$SubjectID"_1mm
+	mkdir -p "$SubjectDIR"/"$SubjectID"/mri
+	mkdir -p "$SubjectDIR"/"$SubjectID"/mri/transforms
+	mkdir -p "$SubjectDIR"/"$SubjectID"/surf
+	mkdir -p "$SubjectDIR"/"$SubjectID"/label
 
-		"$PipelineScripts"/RescaleVolumeAndSurface.sh "$SubjectDIR" "$SubjectID" "$RescaleVolumeTransform" "$T1wImage"
+	"$PipelineScripts"/RescaleVolumeAndSurface.sh "$SubjectDIR" "$SubjectID" "$RescaleVolumeTransform" "$T1wImage"
 
-	fi
+fi
 
-	# RRRRRRR 增加。by RJX on 2025/1/14 RRRRRRR
-	#SubjectDIR
-	if [ -e $SubjectDIR/brainmask_fs.nii.gz ]; then
-		echo 存在brainmask_fs.nii.gz文件
-	else
-		echo 不存在，自动创建
-		fslmaths $SubjectDIR/T1w_acpc_dc_restore_brain.nii.gz \
-		-bin \
-		$SubjectDIR/brainmask_fs.nii.gz
-	fi
-	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+# RRRRRRR 增加。by RJX on 2025/1/14 RRRRRRR
+#SubjectDIR
+if [ -e $SubjectDIR/brainmask_fs.nii.gz ]; then
+	echo 存在brainmask_fs.nii.gz文件
+else
+	echo 不存在，自动创建
+	fslmaths $SubjectDIR/T1w_acpc_dc_restore_brain.nii.gz \
+	-bin \
+	$SubjectDIR/brainmask_fs.nii.gz
+fi
+# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 exit 0;
 
@@ -563,61 +563,61 @@ exit 0;
 
 function main {
 
-	if   [ "$RunMode" = "0" ] ; then 
+if   [ "$RunMode" = "0" ] ; then 
 
-		runFSinit;runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+	runFSinit;runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
 
-	elif [ "$RunMode" = "1" ] ; then
+elif [ "$RunMode" = "1" ] ; then
 
-		runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+	runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
 
-	elif [ "$RunMode" = "2" ] ; then
+elif [ "$RunMode" = "2" ] ; then
 
-		runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+	runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
 
-	elif [ "$RunMode" = "3" ] ; then
+elif [ "$RunMode" = "3" ] ; then
 
-		if [ "$AsegEdit" != "NONE" ] ; then
-			cp $AsegEdit "$SubjectDIR"/"$SubjectID"/mri/aseg.auto_noCCseg.mgz
-		fi
-		runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
-
-	elif [ "$RunMode" = "4" ] ; then
-
-		if [ "$ControlPoints" != "NONE" ] ; then
-			mkdir -p "$SubjectDIR"/"$SubjectID"/tmp
-			cp "$ControlPoints" "$SubjectDIR"/"$SubjectID"/tmp/control.dat
-			# the following line is to suppress error in mris_fix_toplogy
-			for i in lh.curv rh.curv ; do if [ -e "$SubjectDIR"/"$SubjectID"/surf/$i ] ; then rm "$SubjectDIR"/"$SubjectID"/surf/$i ;fi;done 
-		fi
-		runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
-		rm -rf "$SubjectDIR"/"$SubjectID"/tmp/control.dat
-
-	elif [ "$RunMode" = "5" ] ; then
-
-		if [ "$WmEdit" != "NONE" ] ; then
-			WM="wm"
-			while [ -e "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz ] ; do
-				WM="${WM}+"
-			done
-			mv "$SubjectDIR"/"$SubjectID"/mri/wm.mgz "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz
-			cp $WmEdit "$SubjectDIR"/"$SubjectID"/mri/wm.mgz 
-		fi
-		runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
-
-	elif [ "$RunMode" = "6" ] ; then
-
-		runFSsurfreg;runFSpial;runFSfinish;
-
-	elif [ "$RunMode" = "7" ] ; then
-
-		runFSpial;runFSfinish;
-
-	elif [ "$RunMode" = "8" ] ; then
-
-		runFSfinish;
-
+	if [ "$AsegEdit" != "NONE" ] ; then
+		cp $AsegEdit "$SubjectDIR"/"$SubjectID"/mri/aseg.auto_noCCseg.mgz
 	fi
+	runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+
+elif [ "$RunMode" = "4" ] ; then
+
+	if [ "$ControlPoints" != "NONE" ] ; then
+		mkdir -p "$SubjectDIR"/"$SubjectID"/tmp
+		cp "$ControlPoints" "$SubjectDIR"/"$SubjectID"/tmp/control.dat
+		# the following line is to suppress error in mris_fix_toplogy
+		for i in lh.curv rh.curv ; do if [ -e "$SubjectDIR"/"$SubjectID"/surf/$i ] ; then rm "$SubjectDIR"/"$SubjectID"/surf/$i ;fi;done 
+	fi
+	runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+	rm -rf "$SubjectDIR"/"$SubjectID"/tmp/control.dat
+
+elif [ "$RunMode" = "5" ] ; then
+
+	if [ "$WmEdit" != "NONE" ] ; then
+		WM="wm"
+		while [ -e "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz ] ; do
+			WM="${WM}+"
+		done
+		mv "$SubjectDIR"/"$SubjectID"/mri/wm.mgz "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz
+		cp $WmEdit "$SubjectDIR"/"$SubjectID"/mri/wm.mgz 
+	fi
+	runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+
+elif [ "$RunMode" = "6" ] ; then
+
+	runFSsurfreg;runFSpial;runFSfinish;
+
+elif [ "$RunMode" = "7" ] ; then
+
+	runFSpial;runFSfinish;
+
+elif [ "$RunMode" = "8" ] ; then
+
+	runFSfinish;
+
+fi
 
 }
 
