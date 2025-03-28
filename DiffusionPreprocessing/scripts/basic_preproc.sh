@@ -57,18 +57,18 @@ for entry in ${rawdir}/${basePos}_[0-9]*.nii* ${rawdir}/${baseNeg}_[0-9]*.nii*  
 do
 	basename=`imglob ${entry}`
 	echo "${scriptName}: Processing $basename"
-	
+
 	echo "${scriptName}: About to fslmaths ${entry} -Xmean -Ymean -Zmean ${basename}_mean"
 	${FSLDIR}/bin/fslmaths ${entry} -Xmean -Ymean -Zmean ${basename}_mean
 	if [ ! -e ${basename}_mean.nii.gz ] ; then
 		echo "${scriptName}: ERROR: Mean file: ${basename}_mean.nii.gz not created"
 		exit 1
 	fi
-	
+
 	echo "${scriptName}: Getting Posbvals from ${basename}.bval"
 	Posbvals=`cat ${basename}.bval`
 	echo "${scriptName}: Posbvals: ${Posbvals}"
-	
+
 	mcnt=0
 	for i in ${Posbvals} #extract all b0s for the series
 	do
@@ -81,10 +81,10 @@ do
 		fi
 		mcnt=$((${mcnt} + 1))
 	done
-	
+
 	echo "${scriptName}: About to fslmerge -t ${basename}_mean `echo ${basename}_b0_????.nii*`"
 	${FSLDIR}/bin/fslmerge -t ${basename}_mean `echo ${basename}_b0_????.nii*`
-	
+
 	echo "${scriptName}: About to fslmaths ${basename}_mean -Tmean ${basename}_mean"
 	${FSLDIR}/bin/fslmaths ${basename}_mean -Tmean ${basename}_mean #This is the mean baseline b0 intensity for the series
 	${FSLDIR}/bin/imrm ${basename}_b0_????
@@ -148,7 +148,7 @@ do
 		fi
 		count=$((${count} + 1))
 	done
-	
+
 	#Create series file
 	sesdimt=`${FSLDIR}/bin/fslval ${entry} dim4` #Number of data points per Pos series
 	for (( j=0; j<${sesdimt}; j++ ))
@@ -202,7 +202,7 @@ do
 		fi
 		count=$((${count} + 1))
 	done
-	
+
 	#Create series file
 	sesdimt=`${FSLDIR}/bin/fslval ${entry} dim4`
 	for (( j=0; j<${sesdimt}; j++ ))
@@ -246,6 +246,39 @@ if [ `isodd $dimz` -eq 1 ];then
 	${FSLDIR}/bin/immv ${rawdir}/Pos_b0n ${rawdir}/Pos_b0
 	${FSLDIR}/bin/immv ${rawdir}/Neg_b0n ${rawdir}/Neg_b0
 fi
+
+# RRRRRRR 增加，保证FOV matrix是偶数值 by RJX on 2024/5/31 RRRRRRR
+dimx=`${FSLDIR}/bin/fslval ${rawdir}/Pos dim1`
+if [ `isodd $dimx` -eq 1 ];then
+	${FSLDIR}/bin/fslroi ${rawdir}/Pos ${rawdir}/Posn 1 -1 0 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Neg ${rawdir}/Negn 1 -1 0 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Pos_b0 ${rawdir}/Pos_b0n 1 -1 0 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Neg_b0 ${rawdir}/Neg_b0n 1 -1 0 -1 0 -1
+	${FSLDIR}/bin/imrm ${rawdir}/Pos
+	${FSLDIR}/bin/imrm ${rawdir}/Neg
+	${FSLDIR}/bin/imrm ${rawdir}/Pos_b0
+	${FSLDIR}/bin/imrm ${rawdir}/Neg_b0
+	${FSLDIR}/bin/immv ${rawdir}/Posn ${rawdir}/Pos
+	${FSLDIR}/bin/immv ${rawdir}/Negn ${rawdir}/Neg
+	${FSLDIR}/bin/immv ${rawdir}/Pos_b0n ${rawdir}/Pos_b0
+	${FSLDIR}/bin/immv ${rawdir}/Neg_b0n ${rawdir}/Neg_b0
+fi
+dimy=`${FSLDIR}/bin/fslval ${rawdir}/Pos dim2`
+if [ `isodd $dimy` -eq 1 ];then
+	${FSLDIR}/bin/fslroi ${rawdir}/Pos ${rawdir}/Posn 0 -1 1 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Neg ${rawdir}/Negn 0 -1 1 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Pos_b0 ${rawdir}/Pos_b0n 0 -1 1 -1 0 -1
+	${FSLDIR}/bin/fslroi ${rawdir}/Neg_b0 ${rawdir}/Neg_b0n 0 -1 1 -1 0 -1
+	${FSLDIR}/bin/imrm ${rawdir}/Pos
+	${FSLDIR}/bin/imrm ${rawdir}/Neg
+	${FSLDIR}/bin/imrm ${rawdir}/Pos_b0
+	${FSLDIR}/bin/imrm ${rawdir}/Neg_b0
+	${FSLDIR}/bin/immv ${rawdir}/Posn ${rawdir}/Pos
+	${FSLDIR}/bin/immv ${rawdir}/Negn ${rawdir}/Neg
+	${FSLDIR}/bin/immv ${rawdir}/Pos_b0n ${rawdir}/Pos_b0
+	${FSLDIR}/bin/immv ${rawdir}/Neg_b0n ${rawdir}/Neg_b0
+fi
+# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 echo "Perform final merge"
 ${FSLDIR}/bin/fslmerge -t ${rawdir}/Pos_Neg_b0 ${rawdir}/Pos_b0 ${rawdir}/Neg_b0 

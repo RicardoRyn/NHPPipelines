@@ -138,7 +138,7 @@ for Subject in `echo $Subjlist | sed -e 's/@/ /g'` ; do
       --fslinear="$FSLinearTransform" \
       --gcadir="$GCAdir" \
       --rescaletrans="$RescaleVolumeTransform" \
-     --asegedit="$AsegEdit" \
+      --asegedit="$AsegEdit" \
       --controlpoints="$ControlPoints" \
       --wmedit="$WmEdit" \
       --t2wflag="$T2wFlag" \

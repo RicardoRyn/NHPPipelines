@@ -462,6 +462,7 @@ main()
 	pre_eddy_cmd+=" --printcom=${runcmd} "
 
 	log_Msg "pre_eddy_cmd: ${pre_eddy_cmd}"
+	# 第1次调用DiffPreprocPipeline_PreEddy.sh
 	${pre_eddy_cmd}
 
 	log_Msg "Invoking Eddy Step"
@@ -479,6 +480,7 @@ main()
 	fi
 
 	log_Msg "eddy_cmd: ${eddy_cmd}"
+	# 第2次调用DiffPreprocPipeline_Eddy.sh
 	${eddy_cmd}
 
 	log_Msg "Invoking Post-Eddy Steps"
@@ -493,6 +495,7 @@ main()
 	post_eddy_cmd+=" --printcom=${runcmd} "
 
 	log_Msg "post_eddy_cmd: ${post_eddy_cmd}"
+	# 第3次调用DiffPreprocPipeline_PostEddy.sh
 	${post_eddy_cmd}
 	
 	log_Msg "Completed"

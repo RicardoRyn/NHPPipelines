@@ -25,3 +25,11 @@ hcp-users discussion list. Sign up for hcp-users at
 [FAQ]: https://github.com/Washington-University/Pipelines/wiki/FAQ
 [wiki]: https://github.com/Washington-University/Pipelines/wiki
 [hcp-users-subscribe]: http://humanconnectome.org/contact/#subscribe
+
+
+
+# LN's Lab
+
+该项目源自于[NHPPipelines](https://gitee.com/link?target=https%3A%2F%2Fgithub.com%2FWashington-University%2FNHPPipelines)
+
+进行部分修改以适用于LN' lab

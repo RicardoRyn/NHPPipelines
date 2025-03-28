@@ -104,21 +104,52 @@ mri_convert "$mridir"/T2w_hires.norm.nii.gz "$mridir"/T2w_hires.norm.mgz
 
 log_Msg "mris_make_surface 1 using T1w hires"
 
-mris_make_surfaces -variablesigma $VARIABLESIGMA $PSIGMA $MAXTHICKNESS $MINGRAY $MAXGRAY -white NOWRITE -aseg aseg.hires -orig white.deformed -filled filled.hires -wm wm.hires -sdir $SubjectDIR -T1 $T1wHires $SubjectID lh
-mris_make_surfaces -variablesigma $VARIABLESIGMA $PSIGMA $MAXTHICKNESS $MINGRAY $MAXGRAY -white NOWRITE -aseg aseg.hires -orig white.deformed -filled filled.hires -wm wm.hires -sdir $SubjectDIR -T1 $T1wHires $SubjectID rh
+mris_make_surfaces \
+	-variablesigma $VARIABLESIGMA $PSIGMA $MAXTHICKNESS $MINGRAY $MAXGRAY \
+	-white NOWRITE \
+	-aseg aseg.hires \
+	-orig white.deformed \
+	-filled filled.hires \
+	-wm wm.hires \
+	-sdir $SubjectDIR \
+	-T1 $T1wHires \
+	$SubjectID \
+	lh
+mris_make_surfaces \
+	-variablesigma $VARIABLESIGMA $PSIGMA $MAXTHICKNESS $MINGRAY $MAXGRAY \
+	-white NOWRITE \
+	-aseg aseg.hires \
+	-orig white.deformed \
+	-filled filled.hires \
+	-wm wm.hires \
+	-sdir $SubjectDIR \
+	-T1 $T1wHires \
+	$SubjectID \
+	rh
 
 cp $SubjectDIR/$SubjectID/surf/lh.pial $SubjectDIR/$SubjectID/surf/lh.pial.preT2
 cp $SubjectDIR/$SubjectID/surf/rh.pial $SubjectDIR/$SubjectID/surf/rh.pial.preT2
 
 if [ "$T2wFlag" != "NONE" ] ; then 
-
 	log_Msg "mris_make_surface 1 using $T2wHires"
 	#For mris_make_surface with correct arguments #Could go from 3 to 2 potentially...
 	mris_make_surfaces $NSIGMA_ABOVE -aseg aseg.hires -filled filled.hires -wm wm.hires -mgz -sdir $SubjectDIR -orig white.deformed -nowhite -orig_white white.deformed -orig_pial pial $T2wFlag $mridir/T2w_hires.norm -T1 $T1wHires -output .T2 $SubjectID lh
 	mris_make_surfaces $NSIGMA_ABOVE -aseg aseg.hires -filled filled.hires -wm wm.hires -mgz -sdir $SubjectDIR -orig white.deformed -nowhite -orig_white white.deformed -orig_pial pial $T2wFlag $mridir/T2w_hires.norm -T1 $T1wHires -output .T2 $SubjectID rh
 	
-	mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi lh
-	mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi rh
+	# RRRRRRR 修改。by RJX on 2024/6/2 RRRRRRR
+	mri_surf2surf --s $SubjectID \
+		--sval-xyz pial.T2 \
+		--reg $regII $mridir/orig.mgz \
+		--tval-xyz $mridir/orig.mgz \
+		--tval pial \
+		--hemi lh
+	mri_surf2surf --s $SubjectID \
+		--sval-xyz pial.T2 \
+		--reg $regII $mridir/orig.mgz \
+		--tval-xyz $mridir/orig.mgz \
+		--tval pial \
+		--hemi rh
+	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 	# Second round
 	log_Msg "Creating T1w_hires.graynorm"
@@ -186,12 +217,12 @@ if [ "$T2wFlag" != "NONE" ] ; then
 	cp $SubjectDIR/$SubjectID/surf/lh.pial $SubjectDIR/$SubjectID/surf/lh.pial.one
 	cp $SubjectDIR/$SubjectID/surf/rh.pial $SubjectDIR/$SubjectID/surf/rh.pial.one
 
-#Check if FreeSurfer is version 5.2.0 or not.  If it is not, use new -first_wm_peak mris_make_surfaces flag
-if [ -z `cat ${FREESURFER_HOME}/build-stamp.txt | grep v5.2.0` ] ; then
-  VARIABLESIGMA="4"
-else
-  VARIABLESIGMA="2"
-fi
+	#Check if FreeSurfer is version 5.2.0 or not.  If it is not, use new -first_wm_peak mris_make_surfaces flag
+	if [ -z `cat ${FREESURFER_HOME}/build-stamp.txt | grep v5.2.0` ] ; then
+		VARIABLESIGMA="4"
+	else
+		VARIABLESIGMA="2"
+	fi
 
 	# marmoset data does not work well for the second round T1w-based pial estimation - pial is not inflated enough Takuya Hayashi Jan 2018
 	log_Msg "mris_make_surface 2 using T1w_hires.greynorm"
@@ -209,8 +240,10 @@ fi
 	
 	# Marmoset data does not work well for second round.
 	if [ "$SPECIES" != Marmoset ] ; then
-		mri_surf2surf --s $SubjectID --sval-xyz pial.T2.two --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi lh
-		mri_surf2surf --s $SubjectID --sval-xyz pial.T2.two --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi rh
+		# RRRRRRR 修改。by RJX on 2024/6/2 RRRRRRR
+		mri_surf2surf --s $SubjectID --sval-xyz pial.T2.two --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi lh
+		mri_surf2surf --s $SubjectID --sval-xyz pial.T2.two --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi rh
+		# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 		cp $SubjectDIR/$SubjectID/surf/lh.thickness $SubjectDIR/$SubjectID/surf/lh.thickness.preT2
 		cp $SubjectDIR/$SubjectID/surf/rh.thickness $SubjectDIR/$SubjectID/surf/rh.thickness.preT2
@@ -224,8 +257,10 @@ fi
 		cp $SubjectDIR/$SubjectID/surf/lh.curv.pial.T2.two $SubjectDIR/$SubjectID/surf/lh.curv.pial
 		cp $SubjectDIR/$SubjectID/surf/rh.curv.pial.T2.two $SubjectDIR/$SubjectID/surf/rh.curv.pial
 	else
-		mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi lh
-		mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi rh
+		# RRRRRRRR 修改。by RJX on 2024/6/2 RRRRRRR
+		mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi lh
+		mri_surf2surf --s $SubjectID --sval-xyz pial.T2 --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi rh
+		# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 		cp $SubjectDIR/$SubjectID/surf/lh.thickness $SubjectDIR/$SubjectID/surf/lh.thickness.preT2
 		cp $SubjectDIR/$SubjectID/surf/rh.thickness $SubjectDIR/$SubjectID/surf/rh.thickness.preT2
@@ -242,9 +277,10 @@ fi
 	fi
 
 else
-
-	mri_surf2surf --s $SubjectID --sval-xyz pial.preT2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi lh
-	mri_surf2surf --s $SubjectID --sval-xyz pial.preT2 --reg $regII $mridir/orig.mgz --tval-xyz --tval pial --hemi rh
+	# RRRRRRR 修改。by RJX on 2024/6/2 RRRRRRR
+	mri_surf2surf --s $SubjectID --sval-xyz pial.preT2 --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi lh
+	mri_surf2surf --s $SubjectID --sval-xyz pial.preT2 --reg $regII $mridir/orig.mgz --tval-xyz $mridir/orig.mgz --tval pial --hemi rh
+	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 	cp $SubjectDIR/$SubjectID/surf/lh.thickness.preT2 $SubjectDIR/$SubjectID/surf/lh.thickness
 	cp $SubjectDIR/$SubjectID/surf/rh.thickness.preT2 $SubjectDIR/$SubjectID/surf/rh.thickness

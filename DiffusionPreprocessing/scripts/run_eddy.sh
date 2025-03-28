@@ -412,7 +412,7 @@ main()
 		stdEddy="${FSLDIR}/bin/eddy"
 	else
 		log_Msg "INFO: Detected 5.0.9 or newer version of FSL is in use."
-		gpuEnabledEddy="${FSLDIR}/bin/eddy_cuda"
+		gpuEnabledEddy="${FSLDIR}/bin/eddy_cuda10.2"  # modified "eddy_cuda" to "eddy_cuda10.2" by RJX
 		stdEddy="${FSLDIR}/bin/eddy_openmp"
 	fi
 	log_Msg "gpuEnabledEddy: ${gpuEnabledEddy}"
@@ -505,6 +505,7 @@ main()
 	
 	${FSLDIR}/bin/imcp ${topupdir}/nodif_brain_mask ${workingdir}/
 	
+	# RRRRRRR 增加了“--slm=linear” RRRRRRR
 	eddy_command="${eddyExec} "
 	eddy_command+="${outlierStatsOption} "
 	eddy_command+="${replaceOutliersOption} "
@@ -522,6 +523,8 @@ main()
 	eddy_command+="--topup=${topupdir}/topup_Pos_Neg_b0 "
 	eddy_command+="--out=${workingdir}/eddy_unwarped_images "
 	eddy_command+="--flm=quadratic "
+	eddy_command+="--slm=linear "
+	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
 
 	if [ ! -z "${dont_peas}" ] ; then
 		eddy_command+="--dont_peas "

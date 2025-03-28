@@ -96,18 +96,50 @@ ROIFolder="$AtlasSpaceFolder"/"$ROIFolder"
 log_Msg "Make fMRI Ribbon"
 log_Msg "mkdir -p ${ResultsFolder}/RibbonVolumeToSurfaceMapping"
 mkdir -p "$ResultsFolder"/RibbonVolumeToSurfaceMapping
-"$PipelineScripts"/RibbonVolumeToSurfaceMapping.sh "$ResultsFolder"/RibbonVolumeToSurfaceMapping "$ResultsFolder"/"$NameOffMRI" "$Subject" "$AtlasSpaceFolder"/"$DownSampleFolder" "$LowResMesh" "$AtlasSpaceFolder"/"$NativeFolder" "${RegName}"
+# RRRRRRR 主要部分 RRRRRRR
+# 在MNINonLinear/Results中生成rfMRI_REST1_LR.?.native.func.gii和rfMRI_REST1_LR.?.atlasroi.32k_fs_LR.func.gii
+"$PipelineScripts"/RibbonVolumeToSurfaceMapping.sh \
+	"$ResultsFolder"/RibbonVolumeToSurfaceMapping \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$Subject" \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$LowResMesh" \
+	"$AtlasSpaceFolder"/"$NativeFolder" \
+	"${RegName}"
 
 #Surface Smoothing
 log_Msg "Surface Smoothing"
-"$PipelineScripts"/SurfaceSmoothing.sh "$ResultsFolder"/"$NameOffMRI" "$Subject" "$AtlasSpaceFolder"/"$DownSampleFolder" "$LowResMesh" "$SmoothingFWHM"
+# RRRRRRR 主要部分 RRRRRRR
+"$PipelineScripts"/SurfaceSmoothing.sh \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$Subject" \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$LowResMesh" \
+	"$SmoothingFWHM"
 
 #Subcortical Processing
 log_Msg "Subcortical Processing"
-"$PipelineScripts"/SubcorticalProcessing.sh "$AtlasSpaceFolder" "$ROIFolder" "$FinalfMRIResolution" "$ResultsFolder" "$NameOffMRI" "$SmoothingFWHM" "$GrayordinatesResolution"
+# RRRRRRR 主要部分 RRRRRRR
+"$PipelineScripts"/SubcorticalProcessing.sh \
+	"$AtlasSpaceFolder" \
+	"$ROIFolder" \
+	"$FinalfMRIResolution" \
+	"$ResultsFolder" \
+	"$NameOffMRI" \
+	"$SmoothingFWHM" \
+	"$GrayordinatesResolution"
 
 #Generation of Dense Timeseries
 log_Msg "Generation of Dense Timeseries"
-"$PipelineScripts"/CreateDenseTimeseries.sh "$AtlasSpaceFolder"/"$DownSampleFolder" "$Subject" "$LowResMesh" "$ResultsFolder"/"$NameOffMRI" "$SmoothingFWHM" "$ROIFolder" "$ResultsFolder"/"$OutputAtlasDenseTimeseries" "$GrayordinatesResolution"
+# RRRRRRR 主要部分 RRRRRRR
+"$PipelineScripts"/CreateDenseTimeseries.sh \
+	"$AtlasSpaceFolder"/"$DownSampleFolder" \
+	"$Subject" \
+	"$LowResMesh" \
+	"$ResultsFolder"/"$NameOffMRI" \
+	"$SmoothingFWHM" \
+	"$ROIFolder" \
+	"$ResultsFolder"/"$OutputAtlasDenseTimeseries" \
+	"$GrayordinatesResolution"
 
 log_Msg "Completed"

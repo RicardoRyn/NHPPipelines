@@ -221,6 +221,10 @@ get_options()
 				CombineDataFlag=${argument#*=}
 				index=$(( index + 1 ))
 				;;
+			--rjxexchangedim23=*)
+				RjxExchangeDim23=${argument#*=}
+				index=$(( index + 1 ))
+				;;
 			*)
 				usage
 				echo "ERROR: Unrecognized Option: ${argument}"
@@ -342,9 +346,29 @@ main()
 		GdFlag=1
 	fi
 	
+	# RRRRRRR 主要部分1 RRRRRRR
 	log_Msg "Running Eddy PostProcessing"
 	${runcmd} ${HCPPIPEDIR_dMRI}/eddy_postproc.sh ${outdir} ${GdCoeffs} ${CombineDataFlag}
-	
+
+	# RRRRRRR 使用mrconvert交换了dim2和dim3 RRRRRRR
+	# 新增了名为“--rjxexchangedim23”的Flag以及名为“RjxExchangeDim23”的变量
+	# 简单来说就是将dim2和dim3，使得fsleyes中的标与图像正确对应。
+	if [ ${RjxExchangeDim23} -eq 1 ] ; then
+		mrconvert ${outdir}/data/data.nii.gz ${outdir}/data/data.mif -fslgrad ${outdir}/data/bvecs ${outdir}/data/bvals
+		rm ${outdir}/data/data.nii.gz ${outdir}/data/bvals ${outdir}/data/bvecs
+		mrconvert ${outdir}/data/data.mif -axes 0,2,1,3 ${outdir}/data/data_permuted.mif
+		mrconvert ${outdir}/data/data_permuted.mif ${outdir}/data/data.nii.gz -export_grad_fsl ${outdir}/data/bvecs ${outdir}/data/bvals
+		rm ${outdir}/data/*.mif
+		mrconvert ${outdir}/data/nodif.nii.gz -axes 0,2,1 ${outdir}/data/nodif_permuted.nii.gz
+		mrconvert ${outdir}/data/nodif_brain.nii.gz -axes 0,2,1 ${outdir}/data/nodif_brain_permuted.nii.gz
+		mrconvert ${outdir}/data/nodif_brain_mask.nii.gz -axes 0,2,1 ${outdir}/data/nodif_brain_mask_permuted.nii.gz
+		rm ${outdir}/data/nodif.nii.gz ${outdir}/data/nodif_brain.nii.gz ${outdir}/data/nodif_brain_mask.nii.gz
+		mv ${outdir}/data/nodif_permuted.nii.gz ${outdir}/data/nodif.nii.gz
+		mv ${outdir}/data/nodif_brain_permuted.nii.gz ${outdir}/data/nodif_brain.nii.gz
+		mv ${outdir}/data/nodif_brain_mask_permuted.nii.gz ${outdir}/data/nodif_brain_mask.nii.gz
+	fi
+	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+
 	# Establish variables that follow naming conventions
 	T1wFolder="${StudyFolder}/${Subject}/T1w" #Location of T1w images
 	T1wImage="${T1wFolder}/T1w_acpc_dc"
@@ -357,6 +381,7 @@ main()
 	DiffRes=`${FSLDIR}/bin/fslval ${outdir}/data/data pixdim1`
 	DiffRes=`printf "%0.2f" ${DiffRes}`
 	
+	# RRRRRRR 主要部分2 RRRRRRR
 	log_Msg "Running Diffusion to Structural Registration"
 	${runcmd} ${HCPPIPEDIR_dMRI}/DiffusionToStructuralNHP.sh \
 		--t1folder="${T1wFolder}" \
@@ -374,7 +399,6 @@ main()
 		--dof="${DegreesOfFreedom}" \
 		--gdflag=${GdFlag} \
 		--diffresol=${DiffRes}
-
 
 	to_location="${outdirT1w}/eddylogs"
 	from_directory="${outdir}/eddy"

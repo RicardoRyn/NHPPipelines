@@ -89,7 +89,16 @@ else
 fi
 
 # Register cropped image to MNI152 (12 DOF)
-${FSLDIR}/bin/flirt -interp spline -in "$WD"/robustroi.nii.gz -ref "$Reference" -omat "$WD"/roi2std.mat -out "$WD"/acpc_final.nii.gz -searchrx -30 30 -searchry -30 30 -searchrz -30 30 -dof 6
+${FSLDIR}/bin/flirt \
+	-interp spline \
+	-in "$WD"/robustroi.nii.gz \
+	-ref "$Reference" \
+	-omat "$WD"/roi2std.mat \
+	-out "$WD"/acpc_final.nii.gz \
+	-searchrx -30 30 \
+	-searchry -30 30 \
+	-searchrz -30 30 \
+	-dof 6
 
 # Concatenate matrices to get full FOV to MNI
 ${FSLDIR}/bin/convert_xfm -omat "$WD"/full2std.mat -concat "$WD"/roi2std.mat "$WD"/full2roi.mat

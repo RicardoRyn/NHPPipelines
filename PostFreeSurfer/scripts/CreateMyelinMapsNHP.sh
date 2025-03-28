@@ -41,6 +41,7 @@ Jacobian="${36}"
 ReferenceMyelinMaps="${37}"
 CorrectionSigma="${38}"
 RegName="${39}"
+SPECIES="${40}"
 
 echo "CreateMyelinMaps.sh: RegName: ${RegName}"
 
@@ -56,6 +57,7 @@ else
         MyelinMappingFWHM="5"
         SurfaceSmoothingFWHM="4"
 fi
+echo "SPECIES=${SPECIES}"
 echo "MyelinMappingFWHM=$MyelinMappingFWHM"
 echo "SurfaceSmoothingFWHM=$SurfaceSmoothingFWHM"
 MyelinMappingSigma=`echo "$MyelinMappingFWHM / ( 2 * ( sqrt ( 2 * l ( 2 ) ) ) )" | bc -l`

@@ -337,8 +337,19 @@ for Hemisphere in L R ; do
 		#Register using FreeSurfer Sulc Folding Map Using MSM Algorithm Configured for Reduced Distortion
 		#${MSMBINDIR}/msm --version
 		#${MSMBINDIR}/msm --levels=4 --conf=${MSMCONFIGDIR}/allparameterssulcDRconf --inmesh="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.rot.native.surf.gii --trans="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.rot.native.surf.gii --refmesh="$AtlasSpaceFolder"/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_LR.surf.gii --indata="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sulc.native.shape.gii --refdata="$AtlasSpaceFolder"/${Subject}.${Hemisphere}.refsulc."$HighResMesh"k_fs_LR.shape.gii --out="$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}. --verbose
-		${MSMBINDIR}/msm --conf=${MSMCONFIGDIR}/MSMSulcStrainFinalconf --inmesh="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.rot.native.surf.gii --refmesh="$AtlasSpaceFolder"/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_LR.surf.gii --indata="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sulc.native.shape.gii --refdata="$AtlasSpaceFolder"/${Subject}.${Hemisphere}.refsulc."$HighResMesh"k_fs_LR.shape.gii --out="$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}. --verbose
-		cp ${MSMCONFIGDIR}/MSMSulcStrainFinalconf "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.logdir/conf
+		
+		###### 修改。使用MSMSulcStrainFinalconf_by_rjx，否则会报错 #######
+		${MSMBINDIR}/msm \
+			--conf=${MSMCONFIGDIR}/MSMSulcStrainFinalconf_by_rjx \
+			--inmesh="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.rot.native.surf.gii \
+			--refmesh="$AtlasSpaceFolder"/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_LR.surf.gii \
+			--indata="$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sulc.native.shape.gii \
+			--refdata="$AtlasSpaceFolder"/${Subject}.${Hemisphere}.refsulc."$HighResMesh"k_fs_LR.shape.gii \
+			--out="$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}. \
+			--verbose
+		cp ${MSMCONFIGDIR}/MSMSulcStrainFinalconf_by_rjx "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.logdir/conf
+		###############################################################
+
 		cd $DIR
 		#cp "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.HIGHRES_transformed.surf.gii "$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.MSMSulc.native.surf.gii
 		cp "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.sphere.reg.surf.gii "$AtlasSpaceFolder"/"$NativeFolder"/${Subject}.${Hemisphere}.sphere.MSMSulc.native.surf.gii

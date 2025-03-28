@@ -2,8 +2,8 @@
 set -e
 
 Usage_exit (){
-echo "RescaleVolumeAndSurface.sh <SubjectDIR> <SubjectID> <RescaleVolumeTransform> <T1wImage>"
-exit 0;
+	echo "RescaleVolumeAndSurface.sh <SubjectDIR> <SubjectID> <RescaleVolumeTransform> <T1wImage>"
+	exit 0;
 }
 if [ "$4" = "" ] ; then Usage_exit ;fi
 
@@ -32,20 +32,30 @@ mri_convert "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.nii.gz "$SubjectDIR"
 mri_convert "$SubjectDIR"/"$SubjectID"/mri/orig.nii.gz "$SubjectDIR"/"$SubjectID"/mri/orig.mgz
 
 # for hemisphere
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval white_temp --hemi lh
+# 修改。by RJX on 2024/6/2
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval white_temp --hemi lh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/lh.white_temp "$SubjectDIR"/"$SubjectID"/surf/lh.white
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval white_temp --hemi rh
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval white_temp --hemi rh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/rh.white_temp "$SubjectDIR"/"$SubjectID"/surf/rh.white
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval pial_temp --hemi lh
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval pial_temp --hemi lh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/lh.pial_temp "$SubjectDIR"/"$SubjectID"/surf/lh.pial
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval pial_temp --hemi rh
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval pial_temp --hemi rh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/rh.pial_temp "$SubjectDIR"/"$SubjectID"/surf/rh.pial
 
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval white.deformed_temp --hemi lh
+# 在${subj}文件夹中创建左右脑的?h.white.deformed文件（这个文件和T1w_acpc_dc_restore_brain.nii.gz是一样分辨率的。即，不是Freesurfer中的1x1x1）
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval white.deformed_temp --hemi lh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/lh.white.deformed_temp "$SubjectDIR"/"$SubjectID"/surf/lh.white.deformed
-mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz --tval white.deformed_temp --hemi rh
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz white.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval white.deformed_temp --hemi rh
 mv "$SubjectDIR"/"$SubjectID"_1mm/surf/rh.white.deformed_temp "$SubjectDIR"/"$SubjectID"/surf/rh.white.deformed
 
+####### 添加。by RJX 2024/12/21 #######
+# 同上
+# 在${subj}文件夹中创建左右脑的?h.pial.deformed文件（这个文件和T1w_acpc_dc_restore_brain.nii.gz是一样分辨率的。即，不是Freesurfer中的1x1x1）
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval pial.deformed_temp --hemi lh  # 在${subj}_1mm/surf文件夹中创建一个lh.pial.deformed_temp文件，这个lh.pial.deformed_temp文件已经是T1w_acpc_dc_restore_brain.nii.gz分辨率的
+mv "$SubjectDIR"/"$SubjectID"_1mm/surf/lh.pial.deformed_temp "$SubjectDIR"/"$SubjectID"/surf/lh.pial.deformed  # 把{subj}_1mm/surf文件夹中的lh.pial.deformed_temp文件移动到{subj}/surf文件夹中
+mri_surf2surf --s "$SubjectID"_1mm --sval-xyz pial.deformed --reg-inv "$RescaleVolumeTransform".dat "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval-xyz "$SubjectDIR"/"$SubjectID"/mri/brain.finalsurfs.mgz --tval pial.deformed_temp --hemi rh
+mv "$SubjectDIR"/"$SubjectID"_1mm/surf/rh.pial.deformed_temp "$SubjectDIR"/"$SubjectID"/surf/rh.pial.deformed
+######################################
 
 cp "$SubjectDIR"/"$SubjectID"_1mm/surf/lh.sphere "$SubjectDIR"/"$SubjectID"/surf/lh.sphere
 cp "$SubjectDIR"/"$SubjectID"_1mm/surf/rh.sphere "$SubjectDIR"/"$SubjectID"/surf/rh.sphere
@@ -74,22 +84,40 @@ fi
 
 # For hemisphere
 for hemisphere in l r ; do
-  cp "$SubjectDIR"/"$SubjectID"_1mm/surf/${hemisphere}h.thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness
-  #mris_convert "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii
-  #mris_convert "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii
-  #mris_convert -c "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
-  #${CARET7DIR}/wb_command -surface-to-surface-3d-distance "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii
-  #${CARET7DIR}/wb_command -metric-math "roi * min(thickness, 6)" "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii -var thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii -var roi "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
-  #mris_convert -c "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.asc
-  #rm "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
+	cp "$SubjectDIR"/"$SubjectID"_1mm/surf/${hemisphere}h.thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness
+	#mris_convert "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii
+	#mris_convert "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii
+	#mris_convert -c "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
+	#${CARET7DIR}/wb_command -surface-to-surface-3d-distance "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii
+	#${CARET7DIR}/wb_command -metric-math "roi * min(thickness, 6)" "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii -var thickness "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii -var roi "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
+	#mris_convert -c "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.asc
+	#rm "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.white.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.pial.surf.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.thickness.shape.gii "$SubjectDIR"/"$SubjectID"/surf/${hemisphere}h.roi.shape.gii
 done
+
 surf="${SubjectDIR}/${SubjectID}/surf"
+
+####### 修改。by RJX on 2024/6/2 #######
+# hemi="lh"
+# matlab -nojvm -nosplash <<M_PROG
+# addpath $HCPPIPEDIR/global/matlab
+# addpath('/usr/local/NHPHCP/matlab')
+# corticalthickness('${surf}','${hemi}');
+# M_PROG
+
+# hemi="rh"
+# matlab -nojvm -nosplash <<M_PROG
+# addpath $HCPPIPEDIR/global/matlab
+# addpath('/usr/local/NHPHCP/matlab')
+# corticalthickness('${surf}','${hemi}');
+# M_PROG
+#######################################
+
 hemi="lh"
 matlab -nojvm -nosplash <<M_PROG
 addpath $HCPPIPEDIR/global/matlab
-addpath('/usr/local/NHPHCP/matlab')
 corticalthickness('${surf}','${hemi}');
 M_PROG
+
 hemi="rh"
 matlab -nojvm -nosplash <<M_PROG
 addpath $HCPPIPEDIR/global/matlab

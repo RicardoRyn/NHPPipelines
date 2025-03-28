@@ -7,13 +7,13 @@ echo "This script must be SOURCED to correctly setup the environment prior to ru
 #. ${FSLDIR}/etc/fslconf/fsl.sh
 
 # Set up FreeSurfer (if not already done so in the running environment)
-export FREESURFER_HOME=/usr/local/freesurfer-HCP
-. ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1
+export FREESURFER_HOME=/usr/local/freesurfer
+# . ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1  # 注释 by RJX on 2024/5/30
 
-export HCPPIPEDIR=/mnt/pub/devel/NHPHCPPipeline
+export HCPPIPEDIR=/home/ricardo/HCPPipline/NHPPipelines  # 修改 by RJX on 2024/5/30
 
 #export CARET7DIR=/mnt/devel/devel/workbench/bin_linux64
-export CARET7DIR=/usr/bin
+export CARET7DIR=/usr/local/workbench/bin_linux64  # 修改 by RJX on 2024/5/30
 
 # ApplyHandClassification
 export MATLAB_HOME=`which matlab | sed 's/bin\/matlab//g'`
@@ -33,18 +33,22 @@ export HCPPIPEDIR_dMRI=${HCPPIPEDIR}/DiffusionPreprocessing/scripts
 export HCPPIPEDIR_dMRITract=${HCPPIPEDIR}/DiffusionTractography
 export HCPPIPEDIR_Global=${HCPPIPEDIR}/global/scripts
 export HCPPIPEDIR_tfMRIAnalysis=${HCPPIPEDIR}/TaskfMRIAnalysis/scripts
+
 export MATLAB_COMPILER_RUNTIME=/usr/local/MATLAB/MATLAB_Compiler_Runtime
+
 export NSLOTS=8
 export FreeSurferLabels="${HCPPIPEDIR_Config}/FreeSurferAllLut.txt"
+
 OS="`lsb_release -a | grep Distributor | awk '{print $3}'`"
 if [  "$OS" = "CentOS" ] ; then
-  export MSMBINDIR=/mnt/pub/devel/MSM/MSM_HOCR_v2/Centos
+	export MSMBINDIR=/mnt/pub/devel/MSM/MSM_HOCR_v2/Centos
 elif [  "$OS" = "Ubuntu" ] ; then
-  export MSMBINDIR=/mnt/devel/devel/MSM/MSM_HOCR_v2/Ubuntu
+	export MSMBINDIR=/mnt/devel/devel/MSM/MSM_HOCR_v2/Ubuntu  # 虽然没有这个路径，但是export并受到影响
 fi
+
 export MSMCONFIGDIR=$HCPPIPEDIR/MSMConfig
 export FixDir=/mnt/pub/devel/bcil/fix1.06
-export RegName="MSMSulc" # MSMSulc is recommended, if binary is not available use FS (FreeSurfer)
+export RegName="FS" # MSMSulc is recommended, if binary is not available use FS (FreeSurfer)  # 修改（原本默认是“MSMSulc”，现改为“FS”） by RJX on 2024/5/30
 
 if [ "$SPECIES" = Human ] ; then
 
@@ -128,6 +132,6 @@ elif [ "$SPECIES" = Marmoset ] ; then
 
 else
 
- echo "Not yet supported speces: $SPECIES"
+	echo "Not yet supported speces: $SPECIES"
 
 fi
