@@ -47,24 +47,23 @@ tkregister2 --mov "$mridir"/T1w_hires.nii.gz --targ $mridir/orig.mgz --noedit --
 # [Note that Xh.sphere.reg doesn't exist yet, which is the default surface registration 
 # assumed by mri_surf2surf, so use "--surfreg white"].
 
-# RRRRRRR 修改 RRRRRRR
-# “--tval-xyz”后面必须跟volume
+# 可能是版本问题，`--tval-xyz`后面必须跟一个volume文件，因此修改。by RJX
 mri_surf2surf --s $SubjectID \
 	--sval-xyz white \
 	--reg $reg \
-	"$mridir"/T1w_hires.nii.gz \
+  "$mridir"/T1w_hires.nii.gz \
 	--tval-xyz "$mridir"/T1w_hires.nii.gz \
 	--tval white.hires \
 	--surfreg white \
 	--hemi lh
 mri_surf2surf --s $SubjectID \
 	--sval-xyz white \
-	--reg $reg "$mridir"/T1w_hires.nii.gz \
+	--reg $reg \
+  "$mridir"/T1w_hires.nii.gz \
 	--tval-xyz "$mridir"/T1w_hires.nii.gz \
 	--tval white.hires \
 	--surfreg white \
 	--hemi rh
-# RRRRRRRRRRRRRRRRRRRR
 
 cp $SubjectDIR/$SubjectID/surf/lh.white $SubjectDIR/$SubjectID/surf/lh.white.prehires
 cp $SubjectDIR/$SubjectID/surf/rh.white $SubjectDIR/$SubjectID/surf/rh.white.prehires
@@ -126,28 +125,29 @@ echo "0 0 1 0" >> "$mridir"/transforms/eye.dat
 echo "0 0 0 1" >> "$mridir"/transforms/eye.dat
 echo "round" >> "$mridir"/transforms/eye.dat
 
-#if [ ! -e "$mridir"/transforms/T2wtoT1w.mat ] ; then
-if [ "$SPECIES" != "Marmoset" ] ; then   
-  # bbreguster does not work well for marmoset data even having good initialization and correct white surface for marmoset. - Takuya Hayashi Dec 2017
-  bbregister --s "$SubjectID" --mov "$T2wImage" --surf white.deformed --init-reg "$mridir"/transforms/eye.dat --t2 \
-  --reg "$mridir"/transforms/T2wtoT1w.dat --o "$mridir"/T2w_hires.nii.gz
-else
-  cp "$mridir"/transforms/eye.dat "$mridir"/transforms/T2wtoT1w.dat
-fi
+# 由于黑猩猩数据没有T2w数据，因此启用并修改该注释掉的判断语句。by RJX
+if [ -e "$mridir"/transforms/T2wtoT1w.mat ] ; then
+  if [ "$SPECIES" != "Marmoset" ] ; then   
+    # bbreguster does not work well for marmoset data even having good initialization and correct white surface for marmoset. - Takuya Hayashi Dec 2017
+    bbregister --s "$SubjectID" --mov "$T2wImage" --surf white.deformed --init-reg "$mridir"/transforms/eye.dat --t2 \
+    --reg "$mridir"/transforms/T2wtoT1w.dat --o "$mridir"/T2w_hires.nii.gz
+  else
+    cp "$mridir"/transforms/eye.dat "$mridir"/transforms/T2wtoT1w.dat
+  fi
  
   tkregister2 --noedit --reg "$mridir"/transforms/T2wtoT1w.dat --mov "$T2wImage" --targ "$mridir"/T1w_hires.nii.gz --fslregout "$mridir"/transforms/T2wtoT1w.mat
   applywarp --interp=spline -i "$T2wImage" -r "$mridir"/T1w_hires.nii.gz --premat="$mridir"/transforms/T2wtoT1w.mat -o "$mridir"/T2w_hires.nii.gz
   fslmaths "$mridir"/T2w_hires.nii.gz -abs -add 1 "$mridir"/T2w_hires.nii.gz
   fslmaths "$mridir"/T1w_hires.nii.gz -mul "$mridir"/T2w_hires.nii.gz -sqrt "$mridir"/T1wMulT2w_hires.nii.gz
-#else
-#  echo "Warning Reruning FreeSurfer Pipeline"
-#  echo "T2w to T1w Registration Will Not Be Done Again"
-#  echo "Verify that "$T2wImage" has not been fine tuned and then remove "$mridir"/transforms/T2wtoT1w.mat"
-#fi
+else
+  echo "没有T2w数据，以下步骤将跳过：T2w精细化配准到T1w上！"
+  # echo "Warning Reruning FreeSurfer Pipeline"
+  # echo "T2w to T1w Registration Will Not Be Done Again"
+  # echo "Verify that "$T2wImage" has not been fine tuned and then remove "$mridir"/transforms/T2wtoT1w.mat"
+fi
 
 tkregister2 --mov $mridir/orig.mgz --targ "$mridir"/T1w_hires.nii.gz --noedit --regheader --reg $regII
-# RRRRRRR 修改 RRRRRRR
-# 一样，修改
+# 可能是版本问题，`--tval-xyz`后面必须跟一个volume文件，因此修改。by RJX
 mri_surf2surf --s $SubjectID \
 	--sval-xyz white.deformed \
 	--reg $regII \
@@ -165,7 +165,6 @@ mri_surf2surf --s $SubjectID \
 	--tval white \
 	--surfreg white \
 	--hemi rh
-# RRRRRRRRRRRRRRRRRRRR
 
 cp --preserve=timestamps $SubjectDIR/$SubjectID/surf/lh.curv.deformed $SubjectDIR/$SubjectID/surf/lh.curv
 cp --preserve=timestamps $SubjectDIR/$SubjectID/surf/lh.area.deformed  $SubjectDIR/$SubjectID/surf/lh.area

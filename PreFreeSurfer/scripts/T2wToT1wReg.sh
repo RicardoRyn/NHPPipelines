@@ -29,4 +29,4 @@ cp "$WD"/T2w2T1w.nii.gz "$OutputT2wImage".nii.gz
 ${FSLDIR}/bin/convertwarp --relout --rel -r "$OutputT2wImage".nii.gz -w $OutputT1wTransform --postmat="$WD"/T2w2T1w.mat --out="$OutputT2wTransform"
 
 echo " "
-echo " START: T2w2T1Reg"
+echo " END: T2w2T1Reg"

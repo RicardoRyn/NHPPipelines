@@ -1,21 +1,21 @@
-#!/bin/bash 
+#!/bin/bash
 set -e
 
 # Requirements for this script
 #  installed versions of: FSL5.0.5 or higher , FreeSurfer (version 5.2 or higher) ,
-#  environment: FSLDIR , FREESURFER_HOME , HCPPIPEDIR , CARET7DIR 
+#  environment: FSLDIR , FREESURFER_HOME , HCPPIPEDIR , CARET7DIR
 
 # make pipeline engine happy...
-if [ $# -eq 1 ] ; then
-    echo "Version unknown..."
-    exit 0
+if [ $# -eq 1 ]; then
+  echo "Version unknown..."
+  exit 0
 fi
 
-########################################## PIPELINE OVERVIEW ########################################## 
+########################################## PIPELINE OVERVIEW ##########################################
 
 #TODO
 
-########################################## OUTPUT DIRECTORIES ########################################## 
+########################################## OUTPUT DIRECTORIES ##########################################
 
 #TODO
 
@@ -26,15 +26,15 @@ fi
 source $HCPPIPEDIR/global/scripts/log.shlib  # Logging related functions
 source $HCPPIPEDIR/global/scripts/opts.shlib # Command line option functions
 
-########################################## SUPPORT FUNCTIONS ########################################## 
+########################################## SUPPORT FUNCTIONS ##########################################
 
 # --------------------------------------------------------------------------------
 #  Usage Description Function
 # --------------------------------------------------------------------------------
 
 show_usage() {
-    echo "Usage information To Be Written"
-    exit 1
+  echo "Usage information To Be Written"
+  exit 1
 }
 
 # --------------------------------------------------------------------------------
@@ -47,34 +47,36 @@ log_SetToolName "FreeSurferPipeline.sh"
 opts_ShowVersionIfRequested $@
 
 if opts_CheckForHelpRequest $@; then
-    show_usage
+  show_usage
 fi
 
 log_Msg "Parsing Command Line Options"
 
 # Input Variables
-SubjectID=`opts_GetOpt1 "--subject" $@` #FreeSurfer Subject ID Name
-SubjectDIR=`opts_GetOpt1 "--subjectDIR" $@` #Location to Put FreeSurfer Subject's Folder
-T1wImage=`opts_GetOpt1 "--t1" $@` #T1w FreeSurfer Input for head (Full Resolution)
-T1wImageBrain=`opts_GetOpt1 "--t1brain" $@` #T1w FreeSurfer Input for brain (Full Resolution)
-T2wImage=`opts_GetOpt1 "--t2" $@` #T2w FreeSurfer Input for brain (Full Resolution)
-recon_all_seed=`opts_GetOpt1 "--seed" $@`
+SubjectID=$(opts_GetOpt1 "--subject" $@)     #FreeSurfer Subject ID Name
+SubjectDIR=$(opts_GetOpt1 "--subjectDIR" $@) #Location to Put FreeSurfer Subject's Folder
+T1wImage=$(opts_GetOpt1 "--t1" $@)           #T1w FreeSurfer Input for head (Full Resolution)
+T1wImageBrain=$(opts_GetOpt1 "--t1brain" $@) #T1w FreeSurfer Input for brain (Full Resolution)
+T2wImage=$(opts_GetOpt1 "--t2" $@)           #T2w FreeSurfer Input for brain (Full Resolution)
+recon_all_seed=$(opts_GetOpt1 "--seed" $@)
 
 #FSLinearTransform=`opts_GetOpt1 "--fslinear" $@`
-GCAdir=`opts_GetOpt1 "--gcadir" $@` # Needed for NHP
-RescaleVolumeTransform=`opts_GetOpt1 "--rescaletrans" $@` # Needed for NHP
-AsegEdit=`opts_GetOpt1 "--asegedit" $@` # Needed to use aseg.edit.mgz 
-ControlPoints=`opts_GetOpt1 "--controlpoints" $@` # Needed to use $SubjectID/tmp/control.dat, modified by Takuya Hayashi Nov 2017
-WmEdit=`opts_GetOpt1 "--wmedit" $@` # Needed to use wm.edit.mgz, modified by Takuya Hayashi Nov 4th 2015
-T2wFlag=`opts_GetOpt1 "--t2wflag" $@` # T2w, FLAIR or NONE for FreeSurferHiresPial.sh, inserted by Takuya Hayashi Nov 4th 2015
-SPECIES=`opts_GetOpt1 "--species" $@` # Human, Macaque, Marmoset, inserted by Takuya Hayashi on Feb 13th 2016
-IntensityCor=`opts_GetOpt1 "--intensitycor" $@` # NU (default for Human) or FAST (default for NHP) - Methods for intensity correction TH Aug 2019
-BrainMasking=`opts_GetOpt1 "--brainmasking" $@` # FS (default for Human) or HCP (default for NHP) - Methods for brain masking TH Aug 2019
-RunMode=`opts_GetOpt1 "--runmode" $@`  # Run in step mode (0: run all (default), 1: FSinit, 2: FSaseg, 3: FSNormalize2, 4: FSwhiteandpial, 5: FSfinish)
+GCAdir=$(opts_GetOpt1 "--gcadir" $@)                       # Needed for NHP
+RescaleVolumeTransform=$(opts_GetOpt1 "--rescaletrans" $@) # Needed for NHP
+AsegEdit=$(opts_GetOpt1 "--asegedit" $@)                   # Needed to use aseg.edit.mgz
+ControlPoints=$(opts_GetOpt1 "--controlpoints" $@)         # Needed to use $SubjectID/tmp/control.dat, modified by Takuya Hayashi Nov 2017
+WmEdit=$(opts_GetOpt1 "--wmedit" $@)                       # Needed to use wm.edit.mgz, modified by Takuya Hayashi Nov 4th 2015
+T2wFlag=$(opts_GetOpt1 "--t2wflag" $@)                     # T2w, FLAIR or NONE for FreeSurferHiresPial.sh, inserted by Takuya Hayashi Nov 4th 2015
+SPECIES=$(opts_GetOpt1 "--species" $@)                     # Human, Macaque, Marmoset, inserted by Takuya Hayashi on Feb 13th 2016
+IntensityCor=$(opts_GetOpt1 "--intensitycor" $@)           # NU (default for Human) or FAST (default for NHP) - Methods for intensity correction TH Aug 2019
+BrainMasking=$(opts_GetOpt1 "--brainmasking" $@)           # FS (default for Human) or HCP (default for NHP) - Methods for brain masking TH Aug 2019
+NoT2wData=$(opts_GetOpt1 "--not2wdata" $@)                 # 如果没有T2w数据，则填1，否则为0
+NSLOTS=$(opts_GetOpt1 "--nslots" $@)                       # 核心数量，默认为 8
+RunMode=$(opts_GetOpt1 "--runmode" $@)                     # Run in step mode (0: run all (default), 1: FSinit, 2: FSaseg, 3: FSNormalize2, 4: FSwhiteandpial, 5: FSfinish)
 
-if [ "$SPECIES" = "" ] ; then SPECIES=Human; fi
+if [ "$SPECIES" = "" ]; then SPECIES=Human; fi
 
-if [ "$SPECIES" = "Human" ] ; then GCAdir="${FREESURFER_HOME}/average";fi
+if [ "$SPECIES" = "Human" ]; then GCAdir="${FREESURFER_HOME}/average"; fi
 
 # ------------------------------------------------------------------------------
 #  Show Command Line Options
@@ -95,14 +97,16 @@ log_Msg "T2wFlag: ${T2wFlag}"
 log_Msg "SPECIES: ${SPECIES}"
 log_Msg "IntensityCor method: ${IntensityCor}"
 log_Msg "Brain masking method: ${BrainMasking}"
+log_Msg "No T2w Data: ${NoT2wData}"
+log_Msg "NSLOTS: ${NSLOTS}"
 log_Msg "RunMode: ${RunMode}"
 
 # figure out whether to include a random seed generator seed in all the recon-all command lines
 seed_cmd_appendix=""
-if [ -z "${recon_all_seed}" ] ; then
-	seed_cmd_appendix=""
+if [ -z "${recon_all_seed}" ]; then
+  seed_cmd_appendix=""
 else
-	seed_cmd_appendix="-norandomness -rng-seed ${recon_all_seed}"
+  seed_cmd_appendix="-norandomness -rng-seed ${recon_all_seed}"
 fi
 log_Msg "seed_cmd_appendix: ${seed_cmd_appendix}"
 
@@ -117,51 +121,53 @@ log_Msg "HCPPIPEDIR_FS: ${HCPPIPEDIR_FS}"
 #  Identify Tools
 # ------------------------------------------------------------------------------
 
-which_flirt=`which flirt`
-flirt_version=`flirt -version`
+which_flirt=$(which flirt)
+flirt_version=$(flirt -version)
 log_Msg "which flirt: ${which_flirt}"
 log_Msg "flirt -version: ${flirt_version}"
 
-which_applywarp=`which applywarp`
+which_applywarp=$(which applywarp)
 log_Msg "which applywarp: ${which_applywarp}"
 
-which_fslstats=`which fslstats`
+which_fslstats=$(which fslstats)
 log_Msg "which fslstats: ${which_fslstats}"
 
-which_fslmaths=`which fslmaths`
+which_fslmaths=$(which fslmaths)
 log_Msg "which fslmaths: ${which_fslmaths}"
 
-which_recon_all=`which recon-all`
-recon_all_version=`recon-all --version`
+which_recon_all=$(which recon-all)
+recon_all_version=$(recon-all --version)
 log_Msg "which recon-all: ${which_recon_all}"
 log_Msg "recon-all --version: ${recon_all_version}"
 
-which_mri_convert=`which mri_convert`
+which_mri_convert=$(which mri_convert)
 log_Msg "which mri_convert: ${which_mri_convert}"
 
-which_mri_em_register=`which mri_em_register`
-mri_em_register_version=`mri_em_register --version`
+which_mri_em_register=$(which mri_em_register)
+mri_em_register_version=$(mri_em_register --version)
 log_Msg "which mri_em_register: ${which_mri_em_register}"
 log_Msg "mri_em_register --version: ${mri_em_register_version}"
 
-which_mri_watershed=`which mri_watershed`
-mri_watershed_version=`mri_watershed --version`
+which_mri_watershed=$(which mri_watershed)
+mri_watershed_version=$(mri_watershed --version)
 log_Msg "which mri_watershed: ${which_mri_watershed}"
 log_Msg "mri_watershed --version: ${mri_watershed_version}"
 
 # Start work
 
-T1wImageFile=`remove_ext $T1wImage`;
-T1wImageBrainFile=`remove_ext $T1wImageBrain`;
-T2wImageFile=`remove_ext $T2wImage`;
+T1wImageFile=$(remove_ext $T1wImage)
+T1wImageBrainFile=$(remove_ext $T1wImageBrain)
+if [[ $NoT2wData -ne 1 ]]; then
+  T2wImageFile=$(remove_ext $T2wImage)
+fi
 
 PipelineScripts=${HCPPIPEDIR_FS}
 
 export SUBJECTS_DIR="$SubjectDIR"
 
-if [ -e "$SubjectDIR"/"$SubjectID"/scripts/IsRunning.lh+rh ] ; then
+if [ -e "$SubjectDIR"/"$SubjectID"/scripts/IsRunning.lh+rh ]; then
   rm "$SubjectDIR"/"$SubjectID"/scripts/IsRunning.lh+rh
-elif [ -e "$SubjectDIR"/"$SubjectID"_1mm/scripts/IsRunning.lh+rh ] ; then
+elif [ -e "$SubjectDIR"/"$SubjectID"_1mm/scripts/IsRunning.lh+rh ]; then
   rm "$SubjectDIR"/"$SubjectID"_1mm/scripts/IsRunning.lh+rh
 fi
 
@@ -169,456 +175,495 @@ fi
 # a job will use.  If this environment variable is set, we will use it to determine the number of cores to
 # tell recon-all to use.
 
-NSLOTS=8
-if [[ -z ${NSLOTS} ]] ; then
-	num_cores=8
+if [[ -z ${NSLOTS} ]]; then
+  num_cores=8
 else
-	num_cores="${NSLOTS}"
+  num_cores="${NSLOTS}"
 fi
 log_Msg "num_cores: ${num_cores}"
 
-function runFSinit () {
+function runFSinit() {
 
-	log_Msg "Making T1w dim to 256^3 and res to 1mm"
-	"$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T1wImage"
-	log_Msg "Making T1w_brain dim to 256^3 and res to 1mm"
-	"$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T1wImageBrain" nn
-	log_Msg "Making T2w dim to 256^3 and res to 1mm"
-	"$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T2wImage"
-	Mean=`fslstats $T1wImageBrain -M`
-	fslmaths "$T1wImageFile"_1mm.nii.gz -div $Mean -mul 150 -abs "$T1wImageFile"_1mm.nii.gz
+  log_Msg "Making T1w dim to 256^3 and res to 1mm"
+  "$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T1wImage"
+  log_Msg "Making T1w_brain dim to 256^3 and res to 1mm"
+  "$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T1wImageBrain" nn
+  if [[ $NoT2wData -ne 1 ]]; then
+    log_Msg "Making T2w dim to 256^3 and res to 1mm"
+    "$PipelineScripts"/MakeDimto1mm.sh $SPECIES "$T2wImage"
+  fi
+  Mean=$(fslstats $T1wImageBrain -M)
+  fslmaths "$T1wImageFile"_1mm.nii.gz -div $Mean -mul 150 -abs "$T1wImageFile"_1mm.nii.gz
 
-	#Initial Recon-all Steps
-	if [ -e "$SubjectDIR"/"$SubjectID" ] ; then
-		log_Msg "Removing previous FS directory"
- 		rm -rf "$SubjectDIR"/"$SubjectID"
-	fi
-	if [ -e "$SubjectDIR"/"$SubjectID"_1mm ] ; then
-		log_Msg "Removing previous FS 1mm directory"
-		rm -rf "$SubjectDIR"/"$SubjectID"_1mm
-	fi
+  #Initial Recon-all Steps
+  if [ -e "$SubjectDIR"/"$SubjectID" ]; then
+    log_Msg "Removing previous FS directory"
+    rm -rf "$SubjectDIR"/"$SubjectID"
+  fi
+  if [ -e "$SubjectDIR"/"$SubjectID"_1mm ]; then
+    log_Msg "Removing previous FS 1mm directory"
+    rm -rf "$SubjectDIR"/"$SubjectID"_1mm
+  fi
 
-	log_Msg "Initial recon-all steps"
+  log_Msg "Initial recon-all steps"
 
-	recon-all \
-		-i "$T1wImageFile"_1mm.nii.gz \
-		-subjid $SubjectID \
-		-sd $SubjectDIR \
-		-motioncor \
-		-openmp ${num_cores} \
-		${seed_cmd_appendix}
+  recon-all \
+    -i "$T1wImageFile"_1mm.nii.gz \
+    -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -motioncor \
+    -openmp ${num_cores} \
+    ${seed_cmd_appendix}
 
-	fslmaths "$T1wImageBrainFile"_1mm.nii.gz -add 1 "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.nii.gz
-	mri_convert "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.nii.gz "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz --conform
+  fslmaths "$T1wImageBrainFile"_1mm.nii.gz -add 1 "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.nii.gz
+  mri_convert "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.nii.gz "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz --conform
 }
 
+function runNormalize1() {
 
-function runNormalize1 () {
+  # Intensity Correction use nu_correct for human and fast for NHP
+  if [ "$IntensityCor" = "FAST" ]; then
 
-	# Intensity Correction use nu_correct for human and fast for NHP  
-	if [ "$IntensityCor" = "FAST" ] ; then 
+    # Use FAST instead of nu_correct for bias correction, since the former likely better sharpens the histogram.
+    "$PipelineScripts"/IntensityCor.sh \
+      "$SubjectDIR"/"$SubjectID"/mri/orig.mgz \
+      "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz \
+      "$SubjectDIR"/"$SubjectID"/mri/nu.mgz \
+      $SPECIES
 
-		# Use FAST instead of nu_correct for bias correction, since the former likely better sharpens the histogram.
-       	"$PipelineScripts"/IntensityCor.sh \
-			"$SubjectDIR"/"$SubjectID"/mri/orig.mgz \
-			"$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz \
-			"$SubjectDIR"/"$SubjectID"/mri/nu.mgz \
-			$SPECIES
+    recon-all \
+      -subjid $SubjectID \
+      -sd $SubjectDIR \
+      -normalization \
+      -openmp ${num_cores} \
+      ${seed_cmd_appendix}
 
-		recon-all \
-			-subjid $SubjectID \
-			-sd $SubjectDIR \
-			-normalization \
-			-openmp ${num_cores} \
-			${seed_cmd_appendix}
+  elif [ "$IntensityCor" = "NU" ] || [ "$IntensityCor" = "" ]; then
+    # Call recon-all with flags that are part of "-autorecon1", with the exception of -skullstrip.
+    # -skullstrip of FreeSurfer not reliable for Phase II data because of poor FreeSurfer mri_em_register registrations with Skull on,
+    # so run registration with PreFreeSurfer masked data and then generate brain mask as usual.
+    recon-all -subjid $SubjectID -sd $SubjectDIR -talairach -nuintensitycor -normalization -openmp ${num_cores} ${seed_cmd_appendix}
 
-	elif [ "$IntensityCor" = "NU" ] || [ "$IntensityCor" = "" ] ; then 
-		# Call recon-all with flags that are part of "-autorecon1", with the exception of -skullstrip.
-		# -skullstrip of FreeSurfer not reliable for Phase II data because of poor FreeSurfer mri_em_register registrations with Skull on, 
-		# so run registration with PreFreeSurfer masked data and then generate brain mask as usual.
-		recon-all -subjid $SubjectID -sd $SubjectDIR -talairach -nuintensitycor -normalization -openmp ${num_cores} ${seed_cmd_appendix}
+  elif [ "$IntensityCor" = "NUP" ]; then
 
-	elif [ "$IntensityCor" = "NUP" ] ; then 
+    mri_normalize -b 20 -n 5 -g 1 "$SubjectDIR"/"$SubjectID"/mri/nu.mgz "$SubjectDIR"/"$SubjectID"/mri/T1.mgz # MH's tuning for pediatric brain
+    mri_mask "$SubjectDIR"/"$SubjectID"/mri/T1.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz \
+      "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
 
-		mri_normalize -b 20 -n 5 -g 1 "$SubjectDIR"/"$SubjectID"/mri/nu.mgz "$SubjectDIR"/"$SubjectID"/mri/T1.mgz # MH's tuning for pediatric brain
-		mri_mask "$SubjectDIR"/"$SubjectID"/mri/T1.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz \
-		"$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
+  elif [ "$IntensityCor" = "NONE" ]; then
 
-	elif [ "$IntensityCor" = "NONE" ] ; then
+    cp "$SubjectDIR"/"$SubjectID"/mri/orig.mgz "$SubjectDIR"/"$SubjectID"/mri/nu.mgz
 
-		cp "$SubjectDIR"/"$SubjectID"/mri/orig.mgz "$SubjectDIR"/"$SubjectID"/mri/nu.mgz
-
-	fi
-
-}
-
-function runFSbrainmaskandseg () {
-
-	# Generate brain mask
-	export OMP_NUM_THREADS=${num_cores}
-	if [ ! -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ] && [ "$BrainMasking" = "FS" ] ; then
-		mri_em_register "$SubjectDIR"/"$SubjectID"/mri/nu.mgz "$GCAdir"/RB_all_withskull_2008-03-26.gca \
-		"$SubjectDIR"/"$SubjectID"/mri/transforms/talairach_with_skull.lta
-		mri_watershed -T1 -brain_atlas "$GCAdir"/RB_all_withskull_2008-03-26.gca \
-		"$SubjectDIR"/"$SubjectID"/mri/transforms/talairach_with_skull.lta "$SubjectDIR"/"$SubjectID"/mri/T1.mgz \
-		"$SubjectDIR"/"$SubjectID"/mri/brainmask.auto.mgz
-		cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.auto.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
-	elif [ ! -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ] && [ "$BrainMasking" = "HCP" ] ; then
-		cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
-	elif  [ -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ] ; then
-		cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz 
-	else
-		cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
-	fi
-		
-	# Registration and normalization to GCA
-	log_Msg "Second recon-all steps for registration and normaliztion to GCA"
-
-	# RRRRRRR 修改  by RJX on 2024/6/1 儿童节快乐 o((>ω< ))o RRRRRRR
-	# “-gca-dir”默认找的是RB_all_2016-05-10.vc700.gca文件，但是没有。所以添加了“-gca”和“-gca-skull”，然后手动指定文件。
-	recon-all \
-		-subjid $SubjectID \
-		-sd $SubjectDIR \
-		-gcareg \
-		-canorm \
-		-careg \
-		-careginv \
-		-rmneck \
-		-skull-lta \
-		-gca-dir $GCAdir \
-		-gca RB_all_2008-03-26.gca \
-		-gca-skull RB_all_withskull_2008-03-26.gca \
-		-openmp ${num_cores} ${seed_cmd_appendix}
-	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-
-	cp "$SubjectDIR"/"$SubjectID"/mri/norm.mgz "$SubjectDIR"/"$SubjectID"/mri/norm.orig.mgz 
-
-	log_Msg "Third recon-all steps for segmentation using GCA"
-	# Segmentation with GCA
-	DIR=`pwd`
-	cd "$SubjectDIR"/"$SubjectID"/mri
-	if [ "$AsegEdit" = "NONE" ] ; then
-		mri_ca_label \
-			-align \
-			-nobigventricles \
-			-nowmsa norm.mgz transforms/talairach.m3z \
-			"$GCAdir"/RB_all_2008-03-26.gca \
-			aseg.auto_noCCseg.mgz
-	fi
-	cd $DIR
- 
-}
-
-function runFSaseg () {
-
-	DIR=`pwd`
-	cd "$SubjectDIR"/"$SubjectID"/mri
-	mri_cc -aseg aseg.auto_noCCseg.mgz -o aseg.auto.mgz -lta "$SubjectDIR"/"$SubjectID"/mri/transforms/cc_up.lta "$SubjectID"
-	cp aseg.auto.mgz aseg+claustrum.mgz
-	cp aseg.auto.mgz aseg.mgz
-	cd $DIR
-
-}	
-
-function runNormalize2 () {
-
-	log_Msg "Fourth recon-all steps for normalization2"
-
-	# RRRRRRR 修改 by RJX on 2024/6/1 RRRRRRR
-	# 在FreeSurfer 6.0及更高的版本中，引入了“aseg.presurf.mgz”的文件，“aseg.presurf.mgz”相当于一个更粗糙的文件，没有考虑surface的boundaries，考虑了之后，就进化成了“aseg.mgz”文件。
-	# 在FreeSurfer 5.3等更老的版本中，没有考虑这一步，所以只有“aseg.mgz”文件，相当于新版的“aseg.presurf.mgz”文件。
-	# 这里手动生成一个“aseg.presurf.mgz”文件，其实就是“aseg.mgz”文件的复制
-	mri_convert "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz \
-		"$SubjectDIR"/"$SubjectID"/mri/aseg.presurf.mgz
-	# 没有“aseg.presurf.mgz”文件，以下命令会报错
-	recon-all \
-		-subjid $SubjectID \
-		-sd $SubjectDIR \
-		-normalization2
-	# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-
-	#mri_normalize -b 20 -n 5 -aseg "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz -mask "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz \
-	#"$SubjectDIR"/"$SubjectID"/mri/norm.mgz "$SubjectDIR"/"$SubjectID"/mri/brain.mgz # MH's tuning for pediatric brain
-
-	recon-all -subjid $SubjectID \
-		-sd $SubjectDIR \
-		-maskbfs \
-		-segmentation
-
-	## Paste claustrum to wm.mgz - Takuya Hayashi, Oct 2017 
-	DIR=`pwd`
-	cd "$SubjectDIR"/"$SubjectID"/mri
-	cp wm.mgz wm.orig.mgz
-	mri_convert wm.mgz wm.nii.gz
-	mri_convert aseg+claustrum.mgz aseg+claustrum.nii.gz 
-	fslmaths aseg+claustrum.nii.gz -thr 138 -uthr 138 -bin -add aseg+claustrum.nii.gz -thr 139 -uthr 139 -bin -mul 250 \
-	-max wm.nii.gz wm.nii.gz # pasting claustrum to wm.mgz
-
-	## deweight cortical gray in wm.mgz to remove prunning of white surface into gray - Takuya Hayahsi Dec 2017
-	if [[ $ControlPoints = NONE ]] ; then
-		fslmaths aseg+claustrum.nii.gz -thr 42 -uthr 42 -bin -mul -39 -add aseg+claustrum.nii.gz -thr 3 -uthr 3 \
-		-bin -s 0.25 -sub 1 -mul -1 -mul wm.nii.gz -thr 50 wm.nii.gz -odt char
-	fi
-	## paste wm skeleton for Marmoset - TH Aug 2019
-	if [[ $SPECIES =~ Marmoset || $SPECIES =~ Macaque ]] ; then
-		# RRRRRRR 修改 by RJX on 2024/6/1 RRRRRRR
-		# $GCAdir文件夹下没有“wmskeleton.nii.gz”文件，需要从“${HCPPIPEDIR_Templates}/MacaqueRIKEN21”拷贝一个
-		applywarp -i "$GCAdir"/wmskeleton.nii.gz -r ../../T1w_acpc_dc_restore.nii.gz -w \
-		../../../MNINonLinear/xfms/standard2acpc_dc.nii.gz -o wmskeleton.nii.gz --interp=nn
-		"$PipelineScripts"/MakeDimto1mm.sh Marmoset wmskeleton.nii.gz
-		# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
-		fslmaths wmskeleton_1mm.nii.gz -thr 0.2 -bin -mul 255 wmskeleton_1mm.nii.gz
-		mri_convert -ns 1 -odt uchar wmskeleton_1mm.nii.gz wmskeleton_1mm_conform.nii.gz --conform
-		fslmaths wmskeleton_1mm_conform.nii.gz -mul 110 -max wm.nii.gz wm.nii.gz
-	fi
-	## paste wm lesion when needed
-	if (( $(imtest ../../../MNINonLinear/WMLesion/wmlesion.nii.gz) == 1 || $(imtest ../../../T1w/WMLesion/wmlesion.nii.gz) == 1 )) ; then
-		if (( $(imtest ../../../MNINonLinear/WMLesion/wmlesion.nii.gz) == 1 )) ; then
-			applywarp -i ../../../MNINonLinear/WMLesion/wmlesion  -r ../../T1w_acpc_dc_restore.nii.gz \
-			-w ../../../MNINonLinear/xfms/standard2acpc_dc.nii.gz -o wmlesion.nii.gz --interp=nn
-		elif (( $(imtest ../../../T1w/WMLesion/wmlesion.nii.gz) == 1 )) ; then
-			fslmaths ../../../T1w/WMLesion/wmlesion wmlesion.nii.gz
-		fi
-		fslmaths wmlesion.nii.gz -thr 0 -bin wmlesion_bin.nii.gz # lesion threshold by probability
-		"$PipelineScripts"/MakeDimto1mm.sh $SPECIES wmlesion_bin.nii.gz nn
-		fslmaths wmlesion_bin_1mm.nii.gz -thr 0.2 -bin -mul 255 wmlesion_bin_1mm.nii.gz
-		mri_convert -ns 1 -odt uchar wmlesion_bin_1mm.nii.gz wmlesion_bin_1mm_conform.nii.gz --conform
-		fslmaths wmlesion_bin_1mm_conform.nii.gz -mul 110 -max wm.nii.gz wm.nii.gz
-	fi
-	## convert back to mgz format 
-	mri_convert -ns 1 -odt uchar wm.nii.gz wm.mgz  # save in 8-bit
-	cd $DIR
+  fi
 
 }
 
-function runFSwhite () {
+function runFSbrainmaskandseg() {
 
-	## Replace claustrum by putamen in aseg for accurate white surface estimation with mris_make_surface - Takuya Hayashi, Oct 2017
-	DIR=`pwd`
-	cd "$SubjectDIR"/"$SubjectID"/mri
-	fslmaths aseg+claustrum.nii.gz -thr 139 -uthr 139 -bin -mul 51 claustrum2putamen.rh
-	fslmaths aseg+claustrum.nii.gz -thr 138 -uthr 138 -bin -mul 12 claustrum2putamen.lh
-	fslmaths aseg+claustrum.nii.gz \
-		-thr 138 -uthr 138 -bin \
-		-add aseg+claustrum.nii.gz \
-		-thr 139 -uthr 139 -binv \
-		-mul aseg+claustrum.nii.gz \
-		-add claustrum2putamen.lh.nii.gz \
-		-add claustrum2putamen.rh.nii.gz \
-		aseg.nii.gz \
-		-odt char
+  # Generate brain mask
+  export OMP_NUM_THREADS=${num_cores}
+  if [ ! -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ] && [ "$BrainMasking" = "FS" ]; then
+    mri_em_register "$SubjectDIR"/"$SubjectID"/mri/nu.mgz "$GCAdir"/RB_all_withskull_2008-03-26.gca \
+      "$SubjectDIR"/"$SubjectID"/mri/transforms/talairach_with_skull.lta
+    mri_watershed -T1 -brain_atlas "$GCAdir"/RB_all_withskull_2008-03-26.gca \
+      "$SubjectDIR"/"$SubjectID"/mri/transforms/talairach_with_skull.lta "$SubjectDIR"/"$SubjectID"/mri/T1.mgz \
+      "$SubjectDIR"/"$SubjectID"/mri/brainmask.auto.mgz
+    cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.auto.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
+  elif [ ! -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ] && [ "$BrainMasking" = "HCP" ]; then
+    cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
+  elif [ -e "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz ]; then
+    cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.edit.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
+  else
+    cp "$SubjectDIR"/"$SubjectID"/mri/brainmask.orig.mgz "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz
+  fi
 
-	mri_convert -ns 1 -odt uchar aseg.nii.gz aseg.mgz
-	cd $DIR
+  # Registration and normalization to GCA
+  log_Msg "Second recon-all steps for registration and normaliztion to GCA"
 
-	log_Msg "Fifth recon-all steps for white"
-	recon-all \
-		-subjid $SubjectID \
-		-sd $SubjectDIR \
-		-fill \
-		-tessellate \
-		-smooth1 \
-		-inflate1 \
-		-qsphere \
-		-fix \
-		-white \
-		-openmp ${num_cores} ${seed_cmd_appendix}
+  # “-gca-dir”默认找的是RB_all_2016-05-10.vc700.gca文件，但是没有。所以添加了“-gca”和“-gca-skull”，然后手动指定文件。by RJX
+  recon-all \
+    -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -gcareg \
+    -canorm \
+    -careg \
+    -careginv \
+    -rmneck \
+    -skull-lta \
+    -gca-dir $GCAdir \
+    -gca RB_all_2008-03-26.gca \
+    -gca-skull RB_all_withskull_2008-03-26.gca \
+    -openmp ${num_cores} ${seed_cmd_appendix}
 
-	# Highres and white stuffs and fine-tune T2w to T1w Reg
+  cp "$SubjectDIR"/"$SubjectID"/mri/norm.mgz "$SubjectDIR"/"$SubjectID"/mri/norm.orig.mgz
 
-	log_Msg "High resolution white matter and fine tune T2w to T1w registration"
-
-	if [[ ! $SPECIES =~ Human ]] ; then
-		# Modified HiresWhite - Takuya Hayashi for bias-correction of T1w, Jan 2017
-		# RRRRRRR 修改 RRRRRRR
-		# 没有?h.white文件，只有?h.white.preaparc文件（原因未知，可能是版本问题？）
-		cp $SubjectDIR/$SubjectID/surf/lh.white.preaparc \
-			$SubjectDIR/$SubjectID/surf/lh.white
-		cp $SubjectDIR/$SubjectID/surf/rh.white.preaparc \
-			$SubjectDIR/$SubjectID/surf/rh.white
-		# RRRRRRRRRRRRRRRRRRRR
-
-		"$PipelineScripts"/FreeSurferHiresWhiteNHP.sh \
-			"$SubjectID" \
-			"$SubjectDIR" \
-			"$T1wImageFile"_1mm.nii.gz \
-			"$T2wImageFile"_1mm.nii.gz \
-			$SPECIES 
-	else
-		"$PipelineScripts"/FreeSurferHiresWhite.sh "$SubjectID" "$SubjectDIR" "$T1wImage" "$T2wImage"
-	fi
-
-	#Intermediate Recon-all Steps
-	log_Msg "Sixth recon-all steps"
-	if [[ ! $SPECIES =~ Human ]] ; then
-		CurvStats=""
-		AvgCurv=""
-	else
-		CurvStats="-curvstats"
-		AvgCurv="-avgcurv"
-	fi
-	recon-all -subjid $SubjectID -sd $SubjectDIR -smooth2 -inflate2 $CurvStats -sphere 
+  log_Msg "Third recon-all steps for segmentation using GCA"
+  # Segmentation with GCA
+  DIR=$(pwd)
+  cd "$SubjectDIR"/"$SubjectID"/mri
+  if [ "$AsegEdit" = "NONE" ]; then
+    mri_ca_label \
+      -align \
+      -nobigventricles \
+      -nowmsa norm.mgz transforms/talairach.m3z \
+      "$GCAdir"/RB_all_2008-03-26.gca \
+      aseg.auto_noCCseg.mgz
+  fi
+  cd $DIR
 
 }
 
-function runFSsurfreg () {
+function runFSaseg() {
 
-	log_Msg "Surface registration"
-	# Constrain surface registration in FS in Marmoset- Takuya Hayashi Jan 2018
-	if [[ $SPECIES =~ Marmoset ]] ; then
-		dist="-dist 20";
-		max_degrees="-max_degrees 50";
-	else
-		dist=""; # Default is 5
-		max_degrees="";  # Default is 68
-	fi
-	DIR=`pwd`
-	cd "$SubjectDIR"/"$SubjectID"/surf
-	for hemi in lh rh; do
-		mris_register -curv $dist $max_degrees \
-			${hemi}.sphere \
-			$GCAdir/${hemi}.average.curvature.filled.buckner40.tif \
-			${hemi}.sphere.reg
-	done
-	cd $DIR
-
-	log_Msg "Seventh recon-all steps"
-	if [[ ! $SPECIES =~ Human ]] ; then
-		AvgCurv=""
-	else
-		AvgCurv="-avgcurv"
-	fi
-	recon-all -subjid $SubjectID \
-		-sd $SubjectDIR \
-		-jacobian_white $AvgCurv \
-		-cortparc
+  DIR=$(pwd)
+  cd "$SubjectDIR"/"$SubjectID"/mri
+  # 这个命令使用 FreeSurfer 中的 mri_cc 工具进行 胼胝体（Corpus Callosum, CC）分割和修正，并将其添加回 自动分割的 aseg 文件 中
+  mri_cc -aseg aseg.auto_noCCseg.mgz -o aseg.auto.mgz -lta "$SubjectDIR"/"$SubjectID"/mri/transforms/cc_up.lta "$SubjectID"
+  cp aseg.auto.mgz aseg+claustrum.mgz
+  cp aseg.auto.mgz aseg.mgz
+  cd $DIR
 
 }
 
-function runFSpial () {
+function runNormalize2() {
 
-	#Highres pial stuff (this module adjusts the pial surface based on the the T2w image)
-	log_Msg "High resolution pial surface"
-	if [[ ! $SPECIES =~ Human ]] ; then
-		# Modified HiresPial - Takuya Hayashi for bias-correction of T2w, Jan 2017
-		"$PipelineScripts"/FreeSurferHiresPialNHP.sh \
-			"$SubjectID" \
-			"$SubjectDIR" \
-			"$T1wImageFile"_1mm.nii.gz \
-			"$T2wImageFile"_1mm.nii.gz \
-			"$T2wFlag" \
-			"$SPECIES"
-	else
-		"$PipelineScripts"/FreeSurferHiresPial.sh \
-			"$SubjectID" \
-			"$SubjectDIR" \
-			"$T1wImage" \
-			"$T2wImage" \
-			"$MaxThickness"
-	fi
+  log_Msg "Fourth recon-all steps for normalization2"
 
-	#Final Recon-all Steps
-	log_Msg "Final recon-all steps"
-	if [[ ! $SPECIES =~ Human ]] ; then
-		cp "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz "$SubjectDIR"/"$SubjectID"/mri/wmparc.mgz
-	else
-		recon-all -subjid $SubjectID -sd $SubjectDIR -surfvolume -parcstats -cortparc2 -parcstats2 -cortparc3 -parcstats3 -cortribbon \
-		-segstats -aparc2aseg -wmparc -balabels -label-exvivo-ec -openmp ${num_cores} ${seed_cmd_appendix}
-	fi
+  # 在FreeSurfer 6.0及更高的版本中，引入了“aseg.presurf.mgz”的文件，“aseg.presurf.mgz”相当于一个更粗糙的文件，没有考虑surface的boundaries，考虑了之后，就进化成了“aseg.mgz”文件。by RJX
+  # 在FreeSurfer 5.3等更老的版本中，没有考虑这一步，所以只有“aseg.mgz”文件，相当于新版的“aseg.presurf.mgz”文件
+  # 这里手动生成一个“aseg.presurf.mgz”文件，其实就是“aseg.mgz”文件的复制
+  mri_convert "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz \
+    "$SubjectDIR"/"$SubjectID"/mri/aseg.presurf.mgz
+  # 如果没有“aseg.presurf.mgz”文件，以下命令会报错
+  recon-all \
+    -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -normalization2
+
+  #mri_normalize -b 20 -n 5 -aseg "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz -mask "$SubjectDIR"/"$SubjectID"/mri/brainmask.mgz \
+  #"$SubjectDIR"/"$SubjectID"/mri/norm.mgz "$SubjectDIR"/"$SubjectID"/mri/brain.mgz # MH's tuning for pediatric brain
+
+  # `-segmentation`功能：执行组织分割（Tissue Segmentation），将 MRI 体素分类为灰质（GM）、白质（WM）、脑脊液（CSF）等组织类型
+  recon-all -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -maskbfs \
+    -segmentation
+
+  ## Paste claustrum to wm.mgz - Takuya Hayashi, Oct 2017
+  DIR=$(pwd)
+  cd "$SubjectDIR"/"$SubjectID"/mri
+  cp wm.mgz wm.orig.mgz
+  mri_convert wm.mgz wm.nii.gz
+  mri_convert aseg+claustrum.mgz aseg+claustrum.nii.gz
+  # 将 屏状核（Claustrum） 的特定标签合并到白质（WM）图像中
+  fslmaths aseg+claustrum.nii.gz -thr 138 -uthr 138 -bin -add aseg+claustrum.nii.gz -thr 139 -uthr 139 -bin -mul 250 \
+    -max wm.nii.gz wm.nii.gz # pasting claustrum to wm.mgz
+
+  ## deweight cortical gray in wm.mgz to remove prunning of white surface into gray - Takuya Hayahsi Dec 2017
+  if [[ $ControlPoints = NONE ]]; then
+    # 目的是 通过掩膜运算修正白质（WM）图像的区域标记，可能用于处理屏状核（Claustrum）或相邻结构的分类问题
+    fslmaths aseg+claustrum.nii.gz -thr 42 -uthr 42 -bin -mul -39 -add aseg+claustrum.nii.gz -thr 3 -uthr 3 \
+      -bin -s 0.25 -sub 1 -mul -1 -mul wm.nii.gz -thr 50 wm.nii.gz -odt char
+  fi
+
+  # 整个`HCPPIPEDIR_Templates`文件夹下找不到有关黑猩猩的`wmskeleton.nii.gz`文件
+  # NOTE: 黑猩猩将跳过这一步骤
+  ## paste wm skeleton for Marmoset - TH Aug 2019
+  if [[ $SPECIES =~ Marmoset || $SPECIES =~ Macaque ]]; then
+    # `$GCAdir``文件夹下没有`wmskeleton.nii.gz`文件，需要从`${HCPPIPEDIR_Templates}/MacaqueRIKEN21`拷贝一个。by RJX
+    applywarp -i "$GCAdir"/wmskeleton.nii.gz -r ../../T1w_acpc_dc_restore.nii.gz -w \
+      ../../../MNINonLinear/xfms/standard2acpc_dc.nii.gz -o wmskeleton.nii.gz --interp=nn
+    "$PipelineScripts"/MakeDimto1mm.sh Marmoset wmskeleton.nii.gz
+    fslmaths wmskeleton_1mm.nii.gz -thr 0.2 -bin -mul 255 wmskeleton_1mm.nii.gz
+    mri_convert -ns 1 -odt uchar wmskeleton_1mm.nii.gz wmskeleton_1mm_conform.nii.gz --conform
+    fslmaths wmskeleton_1mm_conform.nii.gz -mul 110 -max wm.nii.gz wm.nii.gz
+  fi
+
+  ## paste wm lesion when needed
+  if (($(imtest ../../../MNINonLinear/WMLesion/wmlesion.nii.gz) == 1 || $(imtest ../../../T1w/WMLesion/wmlesion.nii.gz) == 1)); then
+    if (($(imtest ../../../MNINonLinear/WMLesion/wmlesion.nii.gz) == 1)); then
+      applywarp -i ../../../MNINonLinear/WMLesion/wmlesion -r ../../T1w_acpc_dc_restore.nii.gz \
+        -w ../../../MNINonLinear/xfms/standard2acpc_dc.nii.gz -o wmlesion.nii.gz --interp=nn
+    elif (($(imtest ../../../T1w/WMLesion/wmlesion.nii.gz) == 1)); then
+      fslmaths ../../../T1w/WMLesion/wmlesion wmlesion.nii.gz
+    fi
+    fslmaths wmlesion.nii.gz -thr 0 -bin wmlesion_bin.nii.gz # lesion threshold by probability
+    "$PipelineScripts"/MakeDimto1mm.sh $SPECIES wmlesion_bin.nii.gz nn
+    fslmaths wmlesion_bin_1mm.nii.gz -thr 0.2 -bin -mul 255 wmlesion_bin_1mm.nii.gz
+    mri_convert -ns 1 -odt uchar wmlesion_bin_1mm.nii.gz wmlesion_bin_1mm_conform.nii.gz --conform
+    fslmaths wmlesion_bin_1mm_conform.nii.gz -mul 110 -max wm.nii.gz wm.nii.gz
+  fi
+  ## convert back to mgz format
+  mri_convert -ns 1 -odt uchar wm.nii.gz wm.mgz # save in 8-bit
+  cd $DIR
 
 }
 
-function runFSfinish () {
+function runFSwhite() {
 
-if [[ ! $SPECIES =~ Human ]] ; then
+  ## Replace claustrum by putamen in aseg for accurate white surface estimation with mris_make_surface - Takuya Hayashi, Oct 2017
+  DIR=$(pwd)
+  cd "$SubjectDIR"/"$SubjectID"/mri
+  fslmaths aseg+claustrum.nii.gz -thr 139 -uthr 139 -bin -mul 51 claustrum2putamen.rh
+  fslmaths aseg+claustrum.nii.gz -thr 138 -uthr 138 -bin -mul 12 claustrum2putamen.lh
+  fslmaths aseg+claustrum.nii.gz \
+    -thr 138 -uthr 138 -bin \
+    -add aseg+claustrum.nii.gz \
+    -thr 139 -uthr 139 -binv \
+    -mul aseg+claustrum.nii.gz \
+    -add claustrum2putamen.lh.nii.gz \
+    -add claustrum2putamen.rh.nii.gz \
+    aseg.nii.gz \
+    -odt char
 
-	log_Msg "Rescale volume and surface to native space"
+  mri_convert -ns 1 -odt uchar aseg.nii.gz aseg.mgz
+  cd $DIR
 
-	# RescaleVolumeTransform=${HCPPIPEDIR}/global/templates/fs_xfms/${SPECIES}_rescale
-	mv "$SubjectDIR"/"$SubjectID" "$SubjectDIR"/"$SubjectID"_1mm
-	mkdir -p "$SubjectDIR"/"$SubjectID"/mri
-	mkdir -p "$SubjectDIR"/"$SubjectID"/mri/transforms
-	mkdir -p "$SubjectDIR"/"$SubjectID"/surf
-	mkdir -p "$SubjectDIR"/"$SubjectID"/label
+  log_Msg "Fifth recon-all steps for white"
+  recon-all \
+    -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -fill \
+    -tessellate \
+    -smooth1 \
+    -inflate1 \
+    -qsphere \
+    -fix \
+    -white \
+    -openmp ${num_cores} ${seed_cmd_appendix}
 
-	"$PipelineScripts"/RescaleVolumeAndSurface.sh "$SubjectDIR" "$SubjectID" "$RescaleVolumeTransform" "$T1wImage"
+  # Highres and white stuffs and fine-tune T2w to T1w Reg
 
-fi
+  log_Msg "High resolution white matter and fine tune T2w to T1w registration"
 
-# RRRRRRR 增加。by RJX on 2025/1/14 RRRRRRR
-#SubjectDIR
-if [ -e $SubjectDIR/brainmask_fs.nii.gz ]; then
-	echo 存在brainmask_fs.nii.gz文件
-else
-	echo 不存在，自动创建
-	fslmaths $SubjectDIR/T1w_acpc_dc_restore_brain.nii.gz \
-	-bin \
-	$SubjectDIR/brainmask_fs.nii.gz
-fi
-# RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+  if [[ ! $SPECIES =~ Human ]]; then
+    # Modified HiresWhite - Takuya Hayashi for bias-correction of T1w, Jan 2017
+    # 没有`?h.white`文件，只有`?h.white.preaparc`文件（原因未知，可能是版本问题？），因此增加以下代码。by RJX
+    cp $SubjectDIR/$SubjectID/surf/lh.white.preaparc \
+      $SubjectDIR/$SubjectID/surf/lh.white
+    cp $SubjectDIR/$SubjectID/surf/rh.white.preaparc \
+      $SubjectDIR/$SubjectID/surf/rh.white
 
-exit 0;
+    "$PipelineScripts"/FreeSurferHiresWhiteNHP.sh \
+      "$SubjectID" \
+      "$SubjectDIR" \
+      "$T1wImageFile"_1mm.nii.gz \
+      "$T2wImageFile"_1mm.nii.gz \
+      $SPECIES
+  else
+    "$PipelineScripts"/FreeSurferHiresWhite.sh "$SubjectID" "$SubjectDIR" "$T1wImage" "$T2wImage"
+  fi
+
+  #Intermediate Recon-all Steps
+  log_Msg "Sixth recon-all steps"
+  if [[ ! $SPECIES =~ Human ]]; then
+    CurvStats=""
+    AvgCurv=""
+  else
+    CurvStats="-curvstats"
+    AvgCurv="-avgcurv"
+  fi
+  recon-all -subjid $SubjectID -sd $SubjectDIR -smooth2 -inflate2 $CurvStats -sphere
+
+}
+
+function runFSsurfreg() {
+
+  log_Msg "Surface registration"
+  # Constrain surface registration in FS in Marmoset- Takuya Hayashi Jan 2018
+  if [[ $SPECIES =~ Marmoset ]]; then
+    dist="-dist 20"
+    max_degrees="-max_degrees 50"
+  else
+    dist=""        # Default is 5
+    max_degrees="" # Default is 68
+  fi
+  DIR=$(pwd)
+  cd "$SubjectDIR"/"$SubjectID"/surf
+  for hemi in lh rh; do
+    mris_register -curv $dist $max_degrees \
+      ${hemi}.sphere \
+      $GCAdir/${hemi}.average.curvature.filled.buckner40.tif \
+      ${hemi}.sphere.reg
+  done
+  cd $DIR
+
+  log_Msg "Seventh recon-all steps"
+  if [[ ! $SPECIES =~ Human ]]; then
+    AvgCurv=""
+  else
+    AvgCurv="-avgcurv"
+  fi
+  recon-all -subjid $SubjectID \
+    -sd $SubjectDIR \
+    -jacobian_white $AvgCurv \
+    -cortparc
+
+}
+
+function runFSpial() {
+
+  #Highres pial stuff (this module adjusts the pial surface based on the the T2w image)
+  log_Msg "High resolution pial surface"
+  if [[ ! $SPECIES =~ Human ]]; then
+    # Modified HiresPial - Takuya Hayashi for bias-correction of T2w, Jan 2017
+    "$PipelineScripts"/FreeSurferHiresPialNHP.sh \
+      "$SubjectID" \
+      "$SubjectDIR" \
+      "$T1wImageFile"_1mm.nii.gz \
+      "$T2wImageFile"_1mm.nii.gz \
+      "$T2wFlag" \
+      "$SPECIES" \
+      "$NoT2wData"
+  else
+    "$PipelineScripts"/FreeSurferHiresPial.sh \
+      "$SubjectID" \
+      "$SubjectDIR" \
+      "$T1wImage" \
+      "$T2wImage" \
+      "$MaxThickness"
+  fi
+
+  #Final Recon-all Steps
+  log_Msg "Final recon-all steps"
+  if [[ ! $SPECIES =~ Human ]]; then
+    cp "$SubjectDIR"/"$SubjectID"/mri/aseg.mgz "$SubjectDIR"/"$SubjectID"/mri/wmparc.mgz
+  else
+    recon-all -subjid $SubjectID -sd $SubjectDIR -surfvolume -parcstats -cortparc2 -parcstats2 -cortparc3 -parcstats3 -cortribbon \
+      -segstats -aparc2aseg -wmparc -balabels -label-exvivo-ec -openmp ${num_cores} ${seed_cmd_appendix}
+  fi
+
+}
+
+function runFSfinish() {
+
+  if [[ ! $SPECIES =~ Human ]]; then
+
+    log_Msg "Rescale volume and surface to native space"
+
+    # RescaleVolumeTransform=${HCPPIPEDIR}/global/templates/fs_xfms/${SPECIES}_rescale
+    mv "$SubjectDIR"/"$SubjectID" "$SubjectDIR"/"$SubjectID"_1mm
+    mkdir -p "$SubjectDIR"/"$SubjectID"/mri
+    mkdir -p "$SubjectDIR"/"$SubjectID"/mri/transforms
+    mkdir -p "$SubjectDIR"/"$SubjectID"/surf
+    mkdir -p "$SubjectDIR"/"$SubjectID"/label
+
+    "$PipelineScripts"/RescaleVolumeAndSurface.sh "$SubjectDIR" "$SubjectID" "$RescaleVolumeTransform" "$T1wImage" "$NoT2wData"
+
+  fi
+
+  exit 0
 
 }
 
 function main {
 
-if   [ "$RunMode" = "0" ] ; then 
+  if [ "$RunMode" = "0" ]; then
 
-	runFSinit;runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+    runFSinit
+    runNormalize1
+    runFSbrainmaskandseg
+    runFSaseg
+    runNormalize2
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "1" ] ; then
+  elif [ "$RunMode" = "1" ]; then
 
-	runNormalize1;runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+    runNormalize1
+    runFSbrainmaskandseg
+    runFSaseg
+    runNormalize2
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "2" ] ; then
+  elif [ "$RunMode" = "2" ]; then
 
-	runFSbrainmaskandseg;runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+    runFSbrainmaskandseg
+    runFSaseg
+    runNormalize2
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "3" ] ; then
+  elif [ "$RunMode" = "3" ]; then
 
-	if [ "$AsegEdit" != "NONE" ] ; then
-		cp $AsegEdit "$SubjectDIR"/"$SubjectID"/mri/aseg.auto_noCCseg.mgz
-	fi
-	runFSaseg;runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+    if [ "$AsegEdit" != "NONE" ]; then
+      cp $AsegEdit "$SubjectDIR"/"$SubjectID"/mri/aseg.auto_noCCseg.mgz
+    fi
+    runFSaseg
+    runNormalize2
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "4" ] ; then
+  elif [ "$RunMode" = "4" ]; then
 
-	if [ "$ControlPoints" != "NONE" ] ; then
-		mkdir -p "$SubjectDIR"/"$SubjectID"/tmp
-		cp "$ControlPoints" "$SubjectDIR"/"$SubjectID"/tmp/control.dat
-		# the following line is to suppress error in mris_fix_toplogy
-		for i in lh.curv rh.curv ; do if [ -e "$SubjectDIR"/"$SubjectID"/surf/$i ] ; then rm "$SubjectDIR"/"$SubjectID"/surf/$i ;fi;done 
-	fi
-	runNormalize2;runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
-	rm -rf "$SubjectDIR"/"$SubjectID"/tmp/control.dat
+    if [ "$ControlPoints" != "NONE" ]; then
+      mkdir -p "$SubjectDIR"/"$SubjectID"/tmp
+      cp "$ControlPoints" "$SubjectDIR"/"$SubjectID"/tmp/control.dat
+      # the following line is to suppress error in mris_fix_toplogy
+      for i in lh.curv rh.curv; do if [ -e "$SubjectDIR"/"$SubjectID"/surf/$i ]; then rm "$SubjectDIR"/"$SubjectID"/surf/$i; fi; done
+    fi
+    runNormalize2
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
+    rm -rf "$SubjectDIR"/"$SubjectID"/tmp/control.dat
 
-elif [ "$RunMode" = "5" ] ; then
+  elif [ "$RunMode" = "5" ]; then
 
-	if [ "$WmEdit" != "NONE" ] ; then
-		WM="wm"
-		while [ -e "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz ] ; do
-			WM="${WM}+"
-		done
-		mv "$SubjectDIR"/"$SubjectID"/mri/wm.mgz "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz
-		cp $WmEdit "$SubjectDIR"/"$SubjectID"/mri/wm.mgz 
-	fi
-	runFSwhite;runFSsurfreg;runFSpial;runFSfinish;
+    if [ "$WmEdit" != "NONE" ]; then
+      WM="wm"
+      while [ -e "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz ]; do
+        WM="${WM}+"
+      done
+      mv "$SubjectDIR"/"$SubjectID"/mri/wm.mgz "$SubjectDIR"/"$SubjectID"/mri/${WM}.mgz
+      cp $WmEdit "$SubjectDIR"/"$SubjectID"/mri/wm.mgz
+    fi
+    runFSwhite
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "6" ] ; then
+  elif [ "$RunMode" = "6" ]; then
 
-	runFSsurfreg;runFSpial;runFSfinish;
+    runFSsurfreg
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "7" ] ; then
+  elif [ "$RunMode" = "7" ]; then
 
-	runFSpial;runFSfinish;
+    runFSpial
+    runFSfinish
 
-elif [ "$RunMode" = "8" ] ; then
+  elif [ "$RunMode" = "8" ]; then
 
-	runFSfinish;
+    runFSfinish
 
-fi
+  elif [ "$RunMode" = "9" ]; then
+
+    echo ""
+    echo "测试模式，指定需要运行的函数"
+    # runFSinit
+    # runNormalize1
+    # runFSbrainmaskandseg
+    # runFSaseg
+    # runNormalize2
+    # runFSwhite
+    # runFSsurfreg
+    # runFSpial
+    runFSfinish
+
+  fi
 
 }
 
-main;
+main
