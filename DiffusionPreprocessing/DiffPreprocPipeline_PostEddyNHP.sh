@@ -227,6 +227,10 @@ get_options() {
       NoT2wData=${argument#*=}
       index=$((index + 1))
       ;;
+    --runmode=*)
+      RunMode=${argument#*=}
+      index=$((index + 1))
+      ;;
     *)
       usage
       echo "ERROR: Unrecognized Option: ${argument}"
@@ -346,8 +350,10 @@ main() {
     GdFlag=1
   fi
 
-  log_Msg "Running Eddy PostProcessing"
-  ${runcmd} ${HCPPIPEDIR_dMRI}/eddy_postproc.sh ${outdir} ${GdCoeffs} ${CombineDataFlag}
+  if [[ $RunMode -ne 2 ]]; then
+    log_Msg "Running Eddy PostProcessing"
+    ${runcmd} ${HCPPIPEDIR_dMRI}/eddy_postproc.sh ${outdir} ${GdCoeffs} ${CombineDataFlag}
+  fi
 
   # HACK:
   # 使用MRtrix3中的mrconvert命令交换了dim2和dim3

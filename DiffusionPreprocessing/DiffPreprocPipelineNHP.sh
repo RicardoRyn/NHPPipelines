@@ -316,6 +316,10 @@ get_options() {
       NoT2wData=${argument#*=}
       index=$((index + 1))
       ;;
+    --runmode=*)
+      RunMode=${argument#*=}
+      index=$((index + 1))
+      ;;
     *)
       usage
       echo "ERROR: Unrecognized Option: ${argument}"
@@ -434,22 +438,10 @@ validate_environment_vars() {
   echo "-- ${SCRIPT_NAME}: Environment Variables Used - End --"
 }
 
-#
 # Function Description
-#  Main processing of script
-#
-main() {
-  # Get Command Line Options
-  get_options $@
 
-  # Validate environment variables
-  validate_environment_vars $@
+function runPreEddyANDEddy() {
 
-  # Establish tool name for logging
-  log_SetToolName "${SCRIPT_NAME}"
-
-  # RRRRRRR 主要部分1：Eddy之前的各种操作，完成topup RRRRRRR
-  # TODO: 恢复注释
   local pre_eddy_cmd=""
   pre_eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_PreEddy.sh "
   pre_eddy_cmd+=" --path=${StudyFolder} "
@@ -464,7 +456,6 @@ main() {
   log_Msg "pre_eddy_cmd: ${pre_eddy_cmd}"
   ${pre_eddy_cmd}
 
-  # RRRRRRR 主要部分2：进行Eddy RRRRRRR
   log_Msg "Invoking Eddy Step"
   local eddy_cmd=""
   eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_Eddy.sh "
@@ -483,7 +474,25 @@ main() {
   log_Msg "eddy_cmd: ${eddy_cmd}"
   ${eddy_cmd}
 
-  # RRRRRRR 主要部分3：Eddy之后的步骤，包括配准到T1上 RRRRRRR
+  log_Msg "Completed PreEddyANDEddy"
+
+}
+
+function runPostEddy() {
+
+  folders=(
+    "${StudyFolder}/${Subject}/${DWIName}/data"
+    "${StudyFolder}/${Subject}/${DWIName}/eddy"
+    "${StudyFolder}/${Subject}/${DWIName}/rawdata"
+    "${StudyFolder}/${Subject}/${DWIName}/reg"
+    "${StudyFolder}/${Subject}/${DWIName}/topup"
+    "${StudyFolder}/${Subject}/T1w/Diffusion"
+  )
+  for folder in "${folders[@]}"; do
+    mkdir -p "$folder"
+    echo "检查并创建文件夹: $folder"
+  done
+
   log_Msg "Invoking Post-Eddy Steps"
   local post_eddy_cmd=""
   post_eddy_cmd+="${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline_PostEddyNHP.sh "
@@ -496,8 +505,40 @@ main() {
   post_eddy_cmd+=" --printcom=${runcmd} "
   post_eddy_cmd+=" --rjxexchangedim23=${RjxExchangeDim23} "
   post_eddy_cmd+=" --not2wdata=${NoT2wData} "
+  post_eddy_cmd+=" --runmode=${RunMode} "
   log_Msg "post_eddy_cmd: ${post_eddy_cmd}"
   ${post_eddy_cmd}
+
+  log_Msg "Completed PostEddy"
+
+}
+
+#  Main processing of script
+
+main() {
+  # Get Command Line Options
+  get_options $@
+
+  # Validate environment variables
+  validate_environment_vars $@
+
+  # Establish tool name for logging
+  log_SetToolName "${SCRIPT_NAME}"
+
+  if [[ $RunMode = 0 ]]; then
+
+    runPreEddyANDEddy
+    runPostEddy
+
+  elif [[ $RunMode = 1 ]]; then
+
+    runPreEddyANDEddy
+
+  elif [[ $RunMode == 2 ]]; then
+
+    runPostEddy
+
+  fi
 
   log_Msg "Completed"
   exit 0
