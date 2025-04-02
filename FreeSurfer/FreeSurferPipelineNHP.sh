@@ -449,7 +449,8 @@ function runFSwhite() {
       "$SubjectDIR" \
       "$T1wImageFile"_1mm.nii.gz \
       "$T2wImageFile"_1mm.nii.gz \
-      $SPECIES
+      $SPECIES \
+      $NoT2wData
   else
     "$PipelineScripts"/FreeSurferHiresWhite.sh "$SubjectID" "$SubjectDIR" "$T1wImage" "$T2wImage"
   fi
