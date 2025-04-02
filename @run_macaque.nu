@@ -1,7 +1,6 @@
 let subjs_list = [SC_06018]
 
 let current_dir = (pwd)
-
 $subjs_list | par-each -t 1 {|subj|
   print $"(ansi green_bold)###################### 正在处理：($subj) ######################(ansi reset)"
 
@@ -14,10 +13,10 @@ $subjs_list | par-each -t 1 {|subj|
       --path=$"($current_dir)"
       --subject=$"($subj)"
       --t1=$"($current_dir)/($subj)/unprocessed/T1w/T1w.nii.gz"
-      --t2=$"($current_dir)/($subj)/unprocessed/T2w/T2w.nii.gz"
       --t1template=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T1w_0.5mm_dedrift.nii.gz"
       --t1templatebrain=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T1w_0.5mm_dedrift_brain.nii.gz"
       --t1template2mm=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T1w_1.0mm_dedrift.nii.gz"
+      --t2=$"($current_dir)/($subj)/unprocessed/T2w/T2w.nii.gz"
       --t2template=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T2w_0.5mm_dedrift.nii.gz"
       --t2templatebrain=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T2w_0.5mm_dedrift_brain.nii.gz"
       --t2template2mm=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19_T2w_1.0mm_dedrift.nii.gz"
@@ -31,7 +30,8 @@ $subjs_list | par-each -t 1 {|subj|
   # FreeSurfer
   # NOTE:
   # --t2
-  # --t2wflag
+  # --t2wflag: None, T2w, FLAIR
+  # --not2wdata: 1=No T2w Data, else=Have T2w Data
   # --runmode
   (
     bash $"($env.HCPPIPEDIR)/FreeSurfer/FreeSurferPipelineNHP.sh"
@@ -40,13 +40,13 @@ $subjs_list | par-each -t 1 {|subj|
       --t1=$"($current_dir)/($subj)/T1w/T1w_acpc_dc_restore.nii.gz"
       --t1brain=$"($current_dir)/($subj)/T1w/T1w_acpc_dc_restore_brain.nii.gz"
       --t2=$"($current_dir)/($subj)/T1w/T2w_acpc_dc_restore.nii.gz"
+      --t2wflag=T2w
       --seed=1234
       --gcadir=$"($env.HCPPIPEDIR_Templates)/MacaqueYerkes19"
       --rescaletrans=$"($env.HCPPIPEDIR_Templates)/fs_xfms/Macaque_rescale"
       --asegedit=NONE
       --controlpoints=NONE
       --wmedit=NONE
-      --t2wflag=T2w
       --species=Macaque
       --intensitycor=FAST
       --brainmasking=HCP
@@ -73,7 +73,7 @@ $subjs_list | par-each -t 1 {|subj|
       --freesurferlabels=$"($env.HCPPIPEDIR_Config)/FreeSurferAllLut.txt"
       --refmyelinmaps=$"($env.HCPPIPEDIR_Templates)/standard_mesh_atlases_macaque/MacaqueYerkes19.MyelinMap_BC.164k_fs_LR.dscalar.nii"
       --regname=MSMSulc
-      --printcom=$"''"
+      --printcom=""
       --species=Macaque
       --not2wdata=0
   )
@@ -84,6 +84,7 @@ $subjs_list | par-each -t 1 {|subj|
   # --dof
   # --rjxexchangedim23: 1=Need to change dim2 and dim3, 0=No need
   # --not2wdata: 1=No T2w Data, else=Have T2w Data
+  # --runmode: 0=All, 1=PreEddyANDEddy, 2=PostEddy
   (
     bash $"($env.HCPPIPEDIR)/DiffusionPreprocessing/DiffPreprocPipelineNHP.sh"
       --path=$"($current_dir)"
