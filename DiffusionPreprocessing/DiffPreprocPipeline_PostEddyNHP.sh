@@ -355,9 +355,7 @@ main() {
     ${runcmd} ${HCPPIPEDIR_dMRI}/eddy_postproc.sh ${outdir} ${GdCoeffs} ${CombineDataFlag}
   fi
 
-  # HACK:
-  # 使用MRtrix3中的mrconvert命令交换了dim2和dim3
-  # 简单来说就是将dim2和dim3交换，使得fsleyes中的标与图像正确对应。
+  # HACK: 使用MRtrix3中的mrconvert命令交换了dim2和dim3。简单来说就是将dim2和dim3交换，使得fsleyes中的标与图像正确对应。
   if [ ${RjxExchangeDim23} -eq 1 ]; then
     mrconvert ${outdir}/data/data.nii.gz ${outdir}/data/data.mif -fslgrad ${outdir}/data/bvecs ${outdir}/data/bvals
     rm ${outdir}/data/data.nii.gz ${outdir}/data/bvals ${outdir}/data/bvecs

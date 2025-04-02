@@ -232,16 +232,27 @@ for TXw in ${Modalities}; do
     --brainsize=${BrainSize}
   #### Brain Extraction (FNIRT-based Masking) ####
   mkdir -p ${TXwFolder}/BrainExtraction_FNIRTbased
-  ${RUN} ${PipelineScripts}/BrainExtraction_FNIRTbasedNHP.sh \
-    --workingdir=${TXwFolder}/BrainExtraction_FNIRTbased \
-    --in=${TXwFolder}/${TXwImage}_acpc \
-    --ref=${TXwTemplateBrain} \
-    --refmask=${TemplateMask} \
-    --ref2mm=${TXwTemplate2mm} \
-    --ref2mmmask=${Template2mmMask} \
-    --outbrain=${TXwFolder}/${TXwImage}_acpc_brain \
-    --outbrainmask=${TXwFolder}/${TXwImage}_acpc_brain_mask \
-    --fnirtconfig=${FNIRTConfig}
+  # HACK: 这一步将生成`T1w_acpc_brain`以及`T1w_acpc_brain_mask`文件，但是部分黑猩猩生成的结果不好，不如直接由原始brain文件进行step
+  # ${RUN} ${PipelineScripts}/BrainExtraction_FNIRTbasedNHP.sh \
+  #   --workingdir=${TXwFolder}/BrainExtraction_FNIRTbased \
+  #   --in=${TXwFolder}/${TXwImage}_acpc \
+  #   --ref=${TXwTemplateBrain} \
+  #   --refmask=${TemplateMask} \
+  #   --ref2mm=${TXwTemplate2mm} \
+  #   --ref2mmmask=${Template2mmMask} \
+  #   --outbrain=${TXwFolder}/${TXwImage}_acpc_brain \
+  #   --outbrainmask=${TXwFolder}/${TXwImage}_acpc_brain_mask \
+  #   --fnirtconfig=${FNIRTConfig}
+  echo "HACK: 配准生成acpc_brain以及acpc_brain_mask文件，而不使用BrainExtraction_FNIRTbasedNHP.sh"
+  flirt -in ${TXwFolder}/${TXwImage}_brain.nii.gz \
+    -ref ${TXwFolder}/${TXwImage}_acpc.nii.gz \
+    -out ${TXwFolder}/${TXwImage}_acpc_brain.nii.gz \
+    -init ${TXwFolder}/xfms/acpc.mat \
+    -applyxfm \
+    -interp trilinear
+  fslmaths ${TXwFolder}/${TXwImage}_acpc_brain.nii.gz \
+    -bin \
+    ${TXwFolder}/${TXwImage}_acpc_brain_mask.nii.gz
 done
 
 ######## END LOOP over T1w and T2w #########
