@@ -335,6 +335,8 @@ if [[ $NoT2wData -ne 1 ]]; then
 else
   echo " "
   echo "没有T2w数据，以下步骤将跳过：偏置场校正！并将原acpc文件复制为acpc_dc/acpc_dc_restore文件。"
+  # TODO: ${T1wImage}_acpc_dc_restore_brain.nii.gz文件，不在MNI空间上。需要进行3drefit -space MNI <files>
+  # T1w_acpc.nii.gz就已经在MNI空间上了
   cp ${T1wFolder}/${T1wImage}_acpc.nii.gz ${T1wFolder}/${T1wImage}_acpc_dc.nii.gz 
   cp ${T1wFolder}/${T1wImage}_acpc.nii.gz ${T1wFolder}/${T1wImage}_acpc_dc_restore.nii.gz 
   cp ${T1wFolder}/${T1wImage}_acpc_brain.nii.gz ${T1wFolder}/${T1wImage}_acpc_dc_restore_brain.nii.gz
